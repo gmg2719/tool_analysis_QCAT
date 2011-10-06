@@ -149,33 +149,53 @@ def extract_pci_rsrp(log_path=None):
     re_cell_id = re.compile(r"Cell\s(\d+)\sEARFCN\s(\d+)\sInst\sMeasured\sRSRP")
 
     meas_file_path = path_to_outfile(analyzer_name)
-    cell_id = None
-    # earfcn  = None
+
+    cell_ids = []
+    earfcn  = []
+
     total_rsrp = 0
+    total_rsrq = 0
     rsrp_count = 0
+    rsrq_count = 0
 
     #TODO: if there are more than 2 serving cells in the log?
     print("Extracting cell ID, RSRP...")
     with open(meas_file_path, 'r') as f:
         for line in f:
-            if cell_id != None:
+            cell_inf = re_cell_id.search(line)
+            if cell_inf != None:
+                cell_ids.append(cell_inf.group(1))
+                earfcn.append(cell_inf.group(2))
+
+            if len(cell_ids) > 0:
                 meas = line.split(',')
-                if len(meas) > 5 and meas[6] != '':
-                    total_rsrp += float(meas[6])
-                    rsrp_count += 1
-            else:
-                cell_inf = re_cell_id.search(line)
-                if cell_inf != None:
-                    cell_id = cell_inf.group(1)
-                    earfcn = cell_inf.group(2)
+                if len(meas) > 6:
+                    for i in range(0, len(cell_ids)):
+                        if meas[6+i*15] != '': # Each cell ID have its own RSRP i different columns
+                            total_rsrp += float(meas[6+i*15])
+                            rsrp_count += 1
+                        if meas[11+i*15] != '': # Each cell ID have its own RSRQ
+                            total_rsrq += float(meas[11+i*15])
+                            rsrq_count += 1
+
+            #     if len(meas) > 6 and meas[6] != '':
+            #         total_rsrp += float(meas[6])
+            #         rsrp_count += 1
+            #
+            # else:
+            #     cell_inf = re_cell_id.search(line)
+            #     if cell_inf != None:
+            #         cell_id = cell_inf.group(1)
+            #         earfcn = cell_inf.group(2)
 
     # Change exprorted file name
     change_file_name(log_path, meas_file_path)
 
     if rsrp_count != 0:
         avg_rsrp = ceil(total_rsrp / rsrp_count * 10) / 10.0
-    if cell_inf != None:
-        return cell_id, earfcn, avg_rsrp
+        avg_rsrq = ceil(total_rsrq / rsrq_count * 10) / 10.0
+
+        return cell_ids, earfcn, avg_rsrp, avg_rsrq
     return None
 
 def extract_dl_rb(log_path=None):
@@ -498,7 +518,7 @@ def ul_summary():
 
 def log_summary(log_path):
     """Summarize info in log"""
-    pci, earfcn, rsrp                      = extract_pci_rsrp(log_path)
+    pci, earfcn, rsrp, rsrq                      = extract_pci_rsrp(log_path)
 
     # Downlink
     dl_phy_tput, dl_rlc_tput, dl_pdcp_tput = extract_dl_tput(log_path)
@@ -515,9 +535,10 @@ def log_summary(log_path):
     log_path = os.path.join(cur_dir, "log_summary.txt")
     with open(log_path, 'w') as f:
         f.write(
-            "Serving Physical Cell ID: " + str(pci) + "\n"
+            "Serving Physical Cell ID list: " + str(pci) + "\n"
             + "RSRP Serving PCI: " + str(rsrp) + "\n"
-            + "EARFCN: " + str(earfcn) + "\n"
+            + "RSRQ Serving PCI: " + str(rsrq) + "\n"
+            + "EARFCN list: " + str(earfcn) + "\n"
             + "\n#DOWNLINK" + "\n"
             + "DL avg PHY throughput (Mbps): " + str(dl_phy_tput) + "\n"
             + "DL avg RLC throughput (Mbps): " + str(dl_rlc_tput) + "\n"
@@ -608,21 +629,21 @@ def concat_signaling(configfile, log_path, output_path):
 
 
 # test_export()
-config_f = "D:\\ng_analysis\\tool_analysis_QCAT\\4g_signaling.cfg"
+# config_f = "D:\\ng_analysis\\tool_analysis_QCAT\\4g_signaling.cfg"
 raw_log = "D:\\ng_analysis\\tool_analysis_QCAT\\QCAT_input\\05-22.16-18.isf"
 # raw_log = "D:\\ng_analysis\\tool_analysis_QCAT\\QCAT_output\\data15_02_35.txt"
 out_path = "D:\\ng_analysis\\tool_analysis_QCAT\\\\QCAT_output\\"
-# print(extract_pci_rsrp(raw_log))
+print(extract_pci_rsrp(raw_log))
 # print(extract_ul_rb_mcs(raw_log))
 # print(extract_dl_tput())
 # print(extract_ul_pwr_bler_tput(raw_log))
 # print(extract_cqi_ri_mcs("05-22.16-18.isf"))
-conf = 'D:/ng_analysis/tool_analysis_QCAT/4g_signaling.cfg'
-lo  = ['D:/ng_analysis/tool_analysis_QCAT/QCAT_output/test_02_10.txt']
+# conf = 'D:/ng_analysis/tool_analysis_QCAT/4g_signaling.cfg'
+# lo  = ['D:/ng_analysis/tool_analysis_QCAT/QCAT_output/test_02_10.txt']
 
 
 # ul_summary()
-# log_summary("05-22.16-18.isf")
+# log_summary(raw_log)
 
 # analyzer_name = "LTE Serving Cell Meas vs. Time"
 # cur_dir = os.getcwd()
