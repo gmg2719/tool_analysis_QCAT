@@ -57,12 +57,12 @@ def name_out_file (analyzer_name):
 def path_to_out_folder():
     """path to output folder after running analyzer"""
     current_dir = os.getcwd()
-    return os.path.join(current_dir, "Test", "QCAT output")  # current path order
+    return os.path.join(current_dir, "QCAT_output")  # current path order
 
 def path_to_outfile (analyzer_name):
     """path to output file after running analyzer"""
     current_dir = os.getcwd()
-    return os.path.join(current_dir, "Test", "QCAT output", name_out_file(analyzer_name)) # current path order
+    return os.path.join(current_dir, "QCAT_output", name_out_file(analyzer_name)) # current path order
 
 
 # PART 1: Analysis with QCAT templates
@@ -82,16 +82,12 @@ def change_file_name(log_path, exported_path):
         split_log_path = reformat_path.split('/')
         log_name = split_log_path[-1].split('.')[0]  # remove file extension, Ex. '.txt'
 
-    if exported_path.find('\\'):
-        cur_dir = os.getcwd()
-        short_dir = exported_path.split(cur_dir)  # Get short path from current directory
-        split_exported_path = short_dir[1].split('\\')
-        exported_name = split_exported_path[-1]   # Get file name
-    elif exported_path.find('/'):
-        cur_dir = os.getcwd()
-        short_dir = exported_path.split(cur_dir)
+    exported_path = exported_path.replace('\\', '/')
+    if exported_path.find('/'):
+        cur_dir = os.getcwd().replace('\\', '/')
+        short_dir = exported_path.split(cur_dir)      # Get short path from current directory
         split_exported_path = short_dir[1].split('/')
-        exported_name = split_exported_path[-1]
+        exported_name = split_exported_path[-1]       # Get file name
 
     if log_name and exported_name:
         new_path = os.path.join(*split_exported_path[:-1], log_name + '_' + exported_name)
@@ -125,7 +121,7 @@ def extract_pci():
     """Extract physical cell ID from analyzer 'cell measure'"""
     analyzer_name = "LTE Serving Cell Meas vs. Time"
     cur_dir = os.getcwd()
-    log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+    log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     print("Running PCI analyzer...")
     run_analyzer(log_path, analyzer_name)
 
@@ -146,7 +142,7 @@ def extract_pci_rsrp(log_path=None):
     analyzer_name = "LTE Serving Cell Meas vs. Time"
     cur_dir = os.getcwd()
     if log_path == None:
-        log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+        log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     print("Running PCI RSRP analyzer...")
     run_analyzer(log_path, analyzer_name)
 
@@ -187,7 +183,7 @@ def extract_dl_rb(log_path=None):
     analyzer_name = "LTE Pdsch Stat Indication vs. Time"
     cur_dir = os.getcwd()
     if log_path == None:
-        log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+        log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     print("Running DL Resource Block number analyzer...")
     run_analyzer(log_path, analyzer_name)
     stat_file_path = path_to_outfile(analyzer_name)
@@ -218,7 +214,7 @@ def extract_cqi_ri_mcs(log_path=None):
     analyzer_name = "LTE L1 CQI RI and MCS vs. Time"
     cur_dir = os.getcwd()
     if log_path == None:
-        log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+        log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     print("Running DL CQI RI and MCS analyzer...")
     run_analyzer(log_path, analyzer_name)
     qual_file_path = path_to_outfile(analyzer_name)
@@ -265,7 +261,7 @@ def extract_ul_rb_mcs(log_path=None):
     analyzer_name = "LTE UL MCS and RB vs. Time"
     cur_dir = os.getcwd()
     if log_path == None:
-        log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+        log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     print("Running UL MCS and RB analyzer...")
     run_analyzer(log_path, analyzer_name)
     grant_file_path = path_to_outfile(analyzer_name)
@@ -304,7 +300,7 @@ def extract_dl_bler_tput(log_path=None):
     analyzer_name = "LTE L1 Tput and BLER vs. Time"
     cur_dir = os.getcwd()
     if log_path == None:
-        log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+        log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     print("Running DL Tput and BLER analyzer...")
     run_analyzer(log_path, analyzer_name)
     qual_file_path = path_to_outfile(analyzer_name)
@@ -343,7 +339,7 @@ def extract_dl_tput(log_path=None):
     analyzer_name = "LTE DL Throughput vs. Time"
     cur_dir = os.getcwd()
     if log_path == None:
-        log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+        log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     print("Running UL Tput analyzer...")
     run_analyzer(log_path, analyzer_name)
     qual_file_path = path_to_outfile(analyzer_name)
@@ -388,7 +384,7 @@ def extract_ul_tput(log_path=None):
     analyzer_name = "LTE UL Throughput vs. Time"
     cur_dir = os.getcwd()
     if log_path == None:
-        log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+        log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     print("Running UL Tput analyzer...")
     run_analyzer(log_path, analyzer_name)
     qual_file_path = path_to_outfile(analyzer_name)
@@ -433,7 +429,7 @@ def extract_ul_pwr_bler_tput(log_path=None):
     analyzer_name = "LTE UL Avg BlerTputPwr Vs Time"
     cur_dir = os.getcwd()
     if log_path == None:
-        log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+        log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     print("Running BLER, Tx Power, Throughput analyzer...")
     run_analyzer(log_path, analyzer_name)
     qual_file_path = path_to_outfile(analyzer_name)
@@ -479,7 +475,7 @@ def extract_ul_pwr_bler_tput(log_path=None):
 def test_export():
     """Just for a fool test"""
     cur_dir = os.getcwd()
-    log_path = os.path.join(cur_dir, "Test", "QCAT input", "FTP DL_eHI04623_MS1_m06090009.dlf")
+    log_path = os.path.join(cur_dir, "QCAT_input", "FTP DL_eHI04623_MS1_m06090009.dlf")
     run_analyzer(log_path, "LTE Serving Cell Meas vs. Time")
 
 def ul_summary():
@@ -612,15 +608,18 @@ def concat_signaling(configfile, log_path, output_path):
 
 
 # test_export()
-config_f = "C:\\Users\\admin\Documents\\NguyenHaiHa-thuctap2020\\Log_Analysis-Hoang_version\\4g_signaling.cfg"
-# raw_log = "C:\\Users\\admin\Documents\\NguyenHaiHa-thuctap2020\\Log_Analysis-Hoang_version\\Test\\QCAT input\\05-22.16-18.isf"
-raw_log = "C:\\Users\\admin\Documents\\NguyenHaiHa-thuctap2020\\Log_Analysis-Hoang_version\\Test\\QCAT output\\data15_02_35.txt"
-out_path = "C:\\Users\\admin\Documents\\NguyenHaiHa-thuctap2020\\Log_Analysis-Hoang_version\\Test\\QCAT output\\"
+config_f = "D:\\ng_analysis\\tool_analysis_QCAT\\4g_signaling.cfg"
+raw_log = "D:\\ng_analysis\\tool_analysis_QCAT\\QCAT_input\\05-22.16-18.isf"
+# raw_log = "D:\\ng_analysis\\tool_analysis_QCAT\\QCAT_output\\data15_02_35.txt"
+out_path = "D:\\ng_analysis\\tool_analysis_QCAT\\\\QCAT_output\\"
 # print(extract_pci_rsrp(raw_log))
-# print(extract_ul_rb_mcs("05-22.16-18.isf"))
+# print(extract_ul_rb_mcs(raw_log))
 # print(extract_dl_tput())
-# print(extract_ul_bler_tput_pwr("05-22.16-18.isf"))
+# print(extract_ul_pwr_bler_tput(raw_log))
 # print(extract_cqi_ri_mcs("05-22.16-18.isf"))
+conf = 'D:/ng_analysis/tool_analysis_QCAT/4g_signaling.cfg'
+lo  = ['D:/ng_analysis/tool_analysis_QCAT/QCAT_output/test_02_10.txt']
+
 
 # ul_summary()
 # log_summary("05-22.16-18.isf")
@@ -628,7 +627,7 @@ out_path = "C:\\Users\\admin\Documents\\NguyenHaiHa-thuctap2020\\Log_Analysis-Ho
 # analyzer_name = "LTE Serving Cell Meas vs. Time"
 # cur_dir = os.getcwd()
 
-concat_signaling(config_f, raw_log, out_path)
+# concat_signaling(config_f, raw_log, out_path)
 
 
 

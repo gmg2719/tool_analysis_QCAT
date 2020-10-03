@@ -261,7 +261,8 @@ class Convert_Table_Auto(Frame):
             # Filter signaling message
             from tool_summary import concat_signaling
             self.log_type_txt.insert(END, "Filtering signal packets...\n")
-            concat_signaling(config_file_PATH, log_file_PATH, csv_dict)
+            for log in log_file_PATH:
+                concat_signaling(config_file_PATH, log, csv_folder_PATH)
             self.log_type_txt.insert(END, "Exported signal packets!\n")
 
             # Convert CSV
