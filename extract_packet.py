@@ -54,6 +54,21 @@ def fill_cell_info(stat_line):
         rsrq = float(cell_info[11].strip())
         return pci, rsrp, rsrq
 
+def fill_tx_rb_power(stat_line):
+    """Extract number of RBs and tx power on PUSCH"""
+    power_ctrl = stat_line.split('|')
+    if len(power_ctrl) > 40:
+        pusch_pwr = float(power_ctrl[18].strip())
+        num_rb    = float(power_ctrl[11].strip())
+        return num_rb, pusch_pwr
+
+def fill_ul_mcs(stat_line):
+    """Extract MCS on PUSCH"""
+    schedule_info = stat_line.split('|')
+    if len(schedule_info) > 40:
+        mcs = float(schedule_info[26].strip())
+        return mcs
+
 def fill_pdsch_stat(stat_line):
     """Extract RLC UL status for retrieve throughput info"""
     dl_stat = stat_line.split('|')
@@ -108,6 +123,85 @@ def fill_pdcp_dl_stat(stat_line):
     if len(dl_stat) > 19:
         pdu_byte_received = int(dl_stat[9].strip())
         return pdu_byte_received
+
+def extract_cell_info(log_file):
+    """Extract cell ID, RSRP, RSRQ"""
+    cell_ids = []
+
+    total_rsrp   = 0
+    total_rsrq   = 0
+    total_ul_rb  = 0
+    total_tx_pwr = 0
+    total_ul_mcs = 0
+
+    meas_count   = 0
+    tx_count     = 0
+    ul_mcs_count = 0
+
+    ml1_measure_found = False
+    tx_power_found    = False
+    ul_mcs_found      = False
+
+    iline_context = 0
+
+    with open(log_file) as f:
+        for line in f:
+            if line.find('0xB97F') != -1:
+                ml1_measure_found = True
+            elif line.find('0xB884') != -1:
+                tx_power_found = True
+            elif line.find('0xB883') != -1:
+                ul_mcs_found = True
+
+
+            if ml1_measure_found:
+                iline_context += 1
+                if iline_context == 17:  # Line 17th when found 'ML1 Searcher Measurement' contains measurement info
+                    cell_id, rsrp, rsrq = fill_cell_info(line)
+                    ml1_measure_found = False
+                    iline_context = 0
+
+                    meas_count += 1
+                    total_rsrp += float(rsrp)
+                    total_rsrq += float(rsrq)
+
+                    if cell_id not in cell_ids:
+                        cell_ids.append(cell_id)
+
+            if tx_power_found:
+                iline_context += 1
+                if iline_context == 16 or iline_context == 17: # Line 16th or 17th when found 'MAC UL Physical Channel Power Control' contains tx_power
+                    if line.find('PUSCH') != -1:
+                        ul_rb, tx_pwr = fill_tx_rb_power(line)
+                        total_ul_rb  += int(ul_rb)
+                        total_tx_pwr += float(tx_pwr)
+                        tx_count     += 1
+                if line == '\n':
+                    tx_power_found = False
+                    iline_context = 0
+
+            if ul_mcs_found:
+                iline_context += 1
+                if iline_context == 14 or iline_context == 15: # Line 14th or 15th when found ' Physical Channel Schedule' contains MCS
+                    if line.find('PUSCH') != -1:
+                        ul_mcs = fill_ul_mcs(line)
+                        total_ul_mcs += int(ul_mcs)
+                        ul_mcs_count += 1
+                if line == '\n':
+                    ul_mcs_found = False
+                    iline_context = 0
+
+    if meas_count != 0:
+        avg_rsrp = ceil(total_rsrp / meas_count * 10) / 10.0
+        avg_rsrq = ceil(total_rsrq / meas_count * 10) / 10.0
+
+        if tx_count != 0:
+            avg_ul_rb  = int(ceil(total_ul_rb / tx_count))
+            avg_tx_pwr = ceil(total_tx_pwr / tx_count * 10) / 10.0
+            if ul_mcs_count != 0:
+                avg_ul_mcs = int(ceil(total_ul_mcs / ul_mcs_count))
+                return cell_ids, avg_rsrp, avg_rsrq, avg_ul_rb, avg_ul_mcs, avg_tx_pwr
+
 
 def pdsch_dl_tput(first_stat, last_stat):
     """Calculate number slot elapsed, PHY, MAC DL throughput, DL BLER"""
@@ -282,10 +376,11 @@ def extract_throughput(logtxt):
 
     return phy_tput_pdsch, mac_tput_dl, rlc_d_tput, rlc_u_tput, pdcp_dl, pdcp_ul, dl_bler
 
-pa = "D:\\ng_analysis\\UlDl-90-9-1.txt"
+# pa = "D:\\ng_analysis\\UlDl-90-9-1.txt"
 # pa = "D:\\ng_analysis\\sample_5g_log.txt"
-# pa = "D:\\ng_analysis\\small_log.txt"
-print(extract_throughput(pa))
+pa = "D:\\ng_analysis\\small_log.txt"
+# print(extract_throughput(pa))
+print(extract_cell_info(pa))
 
 
 
