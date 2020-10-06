@@ -158,7 +158,7 @@ def extract_pci_rsrp(log_path=None):
     rsrp_count = 0
     rsrq_count = 0
 
-    #TODO: if there are more than 2 serving cells in the log?
+    # Read the statistic table
     print("Extracting cell ID, RSRP...")
     with open(meas_file_path, 'r') as f:
         for line in f:
