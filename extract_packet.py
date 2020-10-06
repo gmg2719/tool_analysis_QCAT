@@ -54,6 +54,16 @@ def fill_cell_info(stat_line):
         rsrq = float(cell_info[11].strip())
         return pci, rsrp, rsrq
 
+def fill_freq_info(stat_line):
+    """Extract frequency info"""
+    freq_info = stat_line.split('|')
+    if len(freq_info) > 8:
+        dl_arfcn        = freq_info[3].strip()
+        ul_arfcn        = freq_info[4].strip()
+        dl_carrier_bwth = freq_info[7].strip()
+        ul_carrier_bwth = freq_info[8].strip()
+        return dl_arfcn, ul_arfcn, dl_carrier_bwth, ul_carrier_bwth
+
 def fill_tx_rb_power(stat_line):
     """Extract number of RBs and tx power on PUSCH"""
     power_ctrl = stat_line.split('|')
@@ -68,6 +78,14 @@ def fill_ul_mcs(stat_line):
     if len(schedule_info) > 40:
         mcs = float(schedule_info[26].strip())
         return mcs
+
+def fill_dl_mcs_rb(stat_line):
+    """Extract DL MCS and RBs"""
+    schedule_info = stat_line.split('|')
+    if len(schedule_info) > 60:
+        mcs = int(schedule_info[18].strip())
+        rb  = int(schedule_info[45].strip())
+        return mcs, rb
 
 def fill_pdsch_stat(stat_line):
     """Extract RLC UL status for retrieve throughput info"""
@@ -125,22 +143,31 @@ def fill_pdcp_dl_stat(stat_line):
         return pdu_byte_received
 
 def extract_cell_info(log_file):
-    """Extract cell ID, RSRP, RSRQ"""
+    """Extract cell ID, RSRP, RSRQ, Frequencies, Bandwidths, DL RB, UL RB, DL MCS, UL MCS"""
     cell_ids = []
+    dl_freqs = []
+    ul_freqs = []
+    dl_bwths = []
+    ul_bwths = []
 
     total_rsrp   = 0
     total_rsrq   = 0
     total_ul_rb  = 0
+    total_dl_rb  = 0
     total_tx_pwr = 0
     total_ul_mcs = 0
+    total_dl_mcs = 0
 
     meas_count   = 0
     tx_count     = 0
     ul_mcs_count = 0
+    dl_mcs_count = 0
 
     ml1_measure_found = False
     tx_power_found    = False
     ul_mcs_found      = False
+    dl_mcs_found      = False
+    freq_found        = False
 
     iline_context = 0
 
@@ -152,6 +179,10 @@ def extract_cell_info(log_file):
                 tx_power_found = True
             elif line.find('0xB883') != -1:
                 ul_mcs_found = True
+            elif line.find('0xB887') != -1:
+                dl_mcs_found = True
+            elif line.find('0xB825') != -1:
+                freq_found   = True
 
 
             if ml1_measure_found:
@@ -168,6 +199,22 @@ def extract_cell_info(log_file):
                     if cell_id not in cell_ids:
                         cell_ids.append(cell_id)
 
+            if freq_found:
+                iline_context += 1
+                if iline_context == 16:
+                    dl_arfcn, ul_arfcn, dl_carrier_bwth, ul_carrier_bwth = fill_freq_info(line)
+                    if dl_arfcn not in dl_freqs:
+                        dl_freqs.append(dl_arfcn)
+                    if ul_arfcn not in ul_freqs:
+                        ul_freqs.append(ul_arfcn)
+                    if dl_carrier_bwth not in dl_bwths:
+                        dl_bwths.append(dl_carrier_bwth)
+                    if ul_carrier_bwth not in ul_bwths:
+                        ul_bwths.append(ul_carrier_bwth)
+                if line == '\n':
+                    freq_found = False
+                    iline_context = 0
+
             if tx_power_found:
                 iline_context += 1
                 if iline_context == 16 or iline_context == 17: # Line 16th or 17th when found 'MAC UL Physical Channel Power Control' contains tx_power
@@ -183,13 +230,25 @@ def extract_cell_info(log_file):
             if ul_mcs_found:
                 iline_context += 1
                 if iline_context == 14 or iline_context == 15: # Line 14th or 15th when found ' Physical Channel Schedule' contains MCS
-                    if line.find('PUSCH') != -1:
+                    if line.find('PUSCH') != -1: # Only consider PUSCH, skip PUCCH
                         ul_mcs = fill_ul_mcs(line)
                         total_ul_mcs += int(ul_mcs)
                         ul_mcs_count += 1
                 if line == '\n':
                     ul_mcs_found = False
                     iline_context = 0
+
+            if dl_mcs_found:
+                iline_context += 1
+                if iline_context == 15: # Line 15th when found ' MAC PDSCH Status' contains DL MCS and RBs
+                    dl_mcs, dl_rb = fill_dl_mcs_rb(line)
+                    total_dl_mcs += int(dl_mcs)
+                    total_dl_rb        += int(dl_rb)
+                    dl_mcs_count += 1
+                if line == '\n':
+                    dl_mcs_found = False
+                    iline_context = 0
+
 
     if meas_count != 0:
         avg_rsrp = ceil(total_rsrp / meas_count * 10) / 10.0
@@ -200,7 +259,11 @@ def extract_cell_info(log_file):
             avg_tx_pwr = ceil(total_tx_pwr / tx_count * 10) / 10.0
             if ul_mcs_count != 0:
                 avg_ul_mcs = int(ceil(total_ul_mcs / ul_mcs_count))
-                return cell_ids, avg_rsrp, avg_rsrq, avg_ul_rb, avg_ul_mcs, avg_tx_pwr
+                if dl_mcs_count != 0:
+                    avg_dl_mcs = int(ceil(total_dl_mcs / dl_mcs_count))
+                    avg_dl_rb  = int(ceil(total_dl_rb / dl_mcs_count))
+                    return cell_ids, avg_rsrp, avg_rsrq, dl_freqs, ul_freqs, dl_bwths, ul_bwths, \
+                           avg_dl_rb, avg_ul_rb, avg_dl_mcs, avg_ul_mcs, avg_tx_pwr
 
 
 def pdsch_dl_tput(first_stat, last_stat):
@@ -376,12 +439,44 @@ def extract_throughput(logtxt):
 
     return phy_tput_pdsch, mac_tput_dl, rlc_d_tput, rlc_u_tput, pdcp_dl, pdcp_ul, dl_bler
 
+def txt_log_summary_5g(logfile, outfile):
+    """Report 5G log in brief"""
+    cell_ids, rsrp, rsrq, dl_freqs, ul_freqs, dl_bwths, ul_bwths, dl_rbs, ul_rbs, dl_mcs, ul_mcs, tx_pwr = extract_cell_info(logfile)
+    phy_tput_pdsch, mac_tput_dl, rlc_d_tput, rlc_u_tput, pdcp_dl, pdcp_ul, dl_bler = extract_throughput(logfile)
+
+    with open(outfile, 'w') as f:
+        f.write(
+            "Serving Physical cell ID list: " + str(cell_ids) + '\n'
+            + "RSRP: " + str(rsrp) + '\n'
+            + "RSRQ: " + str(rsrq) + '\n'
+            + "Dlink EARFCN list: " + str(dl_freqs) + '\n'
+            + "Uplink EARFCN list: " + str(ul_freqs) + '\n'
+            + "Dlink Bandwidth list: " + str(dl_bwths) + '\n'
+            + "Uplink Bandwidth list: " + str(ul_bwths) + '\n'
+            + "\n# DOWNLINK" + '\n'
+            + "Dlink Physical throughput (Mbps): " + str(phy_tput_pdsch) + '\n'
+            + "DLink MAC Throughput (Mbps): " + str(mac_tput_dl) + '\n'
+            + "DLink RLC Throughput (Mbps): " + str(rlc_d_tput) + '\n'
+            + "DLink PDCP Throughput (Mbps): " + str(pdcp_dl) + '\n'
+            + "Avg RBs: " + str(dl_rbs) + '\n'
+            + "Avg MCS: " + str(dl_mcs) + '\n'
+            + "Avg DLink BLER: " + str(dl_bler) + '%'+ '\n'
+            + "\n# UPLINK" + '\n'
+            + "Uplink RLC throughput (Mbps): " + str(rlc_u_tput) + '\n'
+            + "Uplink PDCP throughput (Mbps): " + str(pdcp_ul) + '\n'
+            + "Avg RBs: " + str(ul_rbs) + '\n'
+            + "Avg MCS: " + str(ul_mcs) + '\n'
+            + "Avg PUSCH Actual Tx Power (dBm): " + str(tx_pwr) + '\n'
+        )
+
 # pa = "D:\\ng_analysis\\UlDl-90-9-1.txt"
 # pa = "D:\\ng_analysis\\sample_5g_log.txt"
-pa = "D:\\ng_analysis\\small_log.txt"
-# print(extract_throughput(pa))
-print(extract_cell_info(pa))
+# pa = "D:\\ng_analysis\\small_log.txt"
 
+# out = "D:\\ng_analysis\\5g_summary.txt"
+# print(extract_throughput(pa))
+# print(extract_cell_info(pa))
+# txt_log_summary_5g(pa, out)
 
 
 
