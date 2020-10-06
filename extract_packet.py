@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 import os
-import re
+import datetime
 import logging
 
 from math import ceil
@@ -73,11 +73,12 @@ def fill_tx_rb_power(stat_line):
         return num_rb, pusch_pwr
 
 def fill_ul_mcs(stat_line):
-    """Extract MCS on PUSCH"""
+    """Extract MCS, TB size on PUSCH"""
     schedule_info = stat_line.split('|')
     if len(schedule_info) > 40:
         mcs = float(schedule_info[26].strip())
-        return mcs
+        tb_size = int(schedule_info[11].strip())
+        return mcs, tb_size
 
 def fill_dl_mcs_rb(stat_line):
     """Extract DL MCS and RBs"""
@@ -157,17 +158,21 @@ def extract_cell_info(log_file):
     total_tx_pwr = 0
     total_ul_mcs = 0
     total_dl_mcs = 0
+    total_ul_tb  = 0
 
     meas_count   = 0
     tx_count     = 0
     ul_mcs_count = 0
     dl_mcs_count = 0
+    pusch_count  = 0
+    new_tx_count = 0 # New UL transmit
 
     ml1_measure_found = False
     tx_power_found    = False
     ul_mcs_found      = False
     dl_mcs_found      = False
     freq_found        = False
+    first_pusch_found = True
 
     iline_context = 0
 
@@ -179,6 +184,11 @@ def extract_cell_info(log_file):
                 tx_power_found = True
             elif line.find('0xB883') != -1:
                 ul_mcs_found = True
+                if first_pusch_found:
+                    first_time = line.split()[3]
+                    first_pusch_found = False
+                else:
+                    last_time = line.split()[3]
             elif line.find('0xB887') != -1:
                 dl_mcs_found = True
             elif line.find('0xB825') != -1:
@@ -231,9 +241,14 @@ def extract_cell_info(log_file):
                 iline_context += 1
                 if iline_context == 14 or iline_context == 15: # Line 14th or 15th when found ' Physical Channel Schedule' contains MCS
                     if line.find('PUSCH') != -1: # Only consider PUSCH, skip PUCCH
-                        ul_mcs = fill_ul_mcs(line)
-                        total_ul_mcs += int(ul_mcs)
-                        ul_mcs_count += 1
+                        if line.find('NEW_TX') != -1:
+                            ul_mcs, tb_size = fill_ul_mcs(line)
+                            total_ul_mcs += int(ul_mcs)
+                            total_ul_tb  += int(tb_size)
+
+                            ul_mcs_count += 1
+                        pusch_count += 1
+
                 if line == '\n':
                     ul_mcs_found = False
                     iline_context = 0
@@ -259,11 +274,18 @@ def extract_cell_info(log_file):
             avg_tx_pwr = ceil(total_tx_pwr / tx_count * 10) / 10.0
             if ul_mcs_count != 0:
                 avg_ul_mcs = int(ceil(total_ul_mcs / ul_mcs_count))
+                ul_bler    = ceil((pusch_count - ul_mcs_count) / pusch_count * 10) / 10.0
+                first_pusch_time = datetime.datetime.strptime(first_time, "%H:%M:%S.%f")
+                last_pusch_time = datetime.datetime.strptime(last_time, "%H:%M:%S.%f")
+                time_diff  = last_pusch_time - first_pusch_time
+                seconds_diff =  time_diff.total_seconds()
+                ul_tput    = ceil(total_ul_tb * 8 / 1000 / seconds_diff / 1000 * 100) / 100.0
                 if dl_mcs_count != 0:
                     avg_dl_mcs = int(ceil(total_dl_mcs / dl_mcs_count))
                     avg_dl_rb  = int(ceil(total_dl_rb / dl_mcs_count))
+
                     return cell_ids, avg_rsrp, avg_rsrq, dl_freqs, ul_freqs, dl_bwths, ul_bwths, \
-                           avg_dl_rb, avg_ul_rb, avg_dl_mcs, avg_ul_mcs, avg_tx_pwr
+                           avg_dl_rb, avg_ul_rb, avg_dl_mcs, avg_ul_mcs, avg_tx_pwr, ul_tput, ul_bler
 
 
 def pdsch_dl_tput(first_stat, last_stat):
@@ -294,7 +316,7 @@ def rlc_ul_tput(first_stat, last_stat, num_slot_elapsed):
     """Calculate RLC UL throughput"""
     first_total_tx_byte = fill_rlc_ul_stat(first_stat)
     last_total_tx_byte = fill_rlc_ul_stat(last_stat)
-    rlc_ul_tput = ceil((last_total_tx_byte - first_total_tx_byte) / 1000 * 8 * 2 / num_slot_elapsed * 10) / 10.0
+    rlc_ul_tput = ceil((last_total_tx_byte - first_total_tx_byte) / 1000 * 8 * 2 / num_slot_elapsed * 100) / 100.0
     return rlc_ul_tput
 
 def rlc_dl_tput(first_stat, last_stat, num_slot_elapsed):
@@ -308,7 +330,7 @@ def pdcp_ul_tput(first_stat, last_stat, num_slot_elapsed):
     """Calculate PDCP UL throughput"""
     first_total_num_rx_byte = fill_pdcp_ul_stat(first_stat)
     last_total_num_rx_byte  = fill_pdcp_ul_stat(last_stat)
-    pdcp_ul_tput = ceil((last_total_num_rx_byte - first_total_num_rx_byte) / 1000 * 8 * 2 / num_slot_elapsed * 10) / 10.0
+    pdcp_ul_tput = ceil((last_total_num_rx_byte - first_total_num_rx_byte) / 1000 * 8 * 2 / num_slot_elapsed * 100) / 100.0
     return pdcp_ul_tput
 
 def pdcp_dl_tput(first_stat, last_stat, num_slot_elapsed):
@@ -441,7 +463,7 @@ def extract_throughput(logtxt):
 
 def txt_log_summary_5g(logfile, outfile):
     """Report 5G log in brief"""
-    cell_ids, rsrp, rsrq, dl_freqs, ul_freqs, dl_bwths, ul_bwths, dl_rbs, ul_rbs, dl_mcs, ul_mcs, tx_pwr = extract_cell_info(logfile)
+    cell_ids, rsrp, rsrq, dl_freqs, ul_freqs, dl_bwths, ul_bwths, dl_rbs, ul_rbs, dl_mcs, ul_mcs, tx_pwr, ul_tput, ul_bler = extract_cell_info(logfile)
     phy_tput_pdsch, mac_tput_dl, rlc_d_tput, rlc_u_tput, pdcp_dl, pdcp_ul, dl_bler = extract_throughput(logfile)
 
     with open(outfile, 'w') as f:
@@ -462,20 +484,22 @@ def txt_log_summary_5g(logfile, outfile):
             + "Avg MCS: " + str(dl_mcs) + '\n'
             + "Avg DLink BLER: " + str(dl_bler) + '%'+ '\n'
             + "\n# UPLINK" + '\n'
+            + "Uplink Physical throughput (Mbps): " + str(ul_tput) + '\n'
             + "Uplink RLC throughput (Mbps): " + str(rlc_u_tput) + '\n'
             + "Uplink PDCP throughput (Mbps): " + str(pdcp_ul) + '\n'
             + "Avg RBs: " + str(ul_rbs) + '\n'
             + "Avg MCS: " + str(ul_mcs) + '\n'
+            + "Avg UpLink BLER: " + str(ul_bler) + '%' + '\n'
             + "Avg PUSCH Actual Tx Power (dBm): " + str(tx_pwr) + '\n'
         )
 
 # pa = "D:\\ng_analysis\\UlDl-90-9-1.txt"
 # pa = "D:\\ng_analysis\\sample_5g_log.txt"
-# pa = "D:\\ng_analysis\\small_log.txt"
+pa = "D:\\ng_analysis\\small_log.txt"
 
-# out = "D:\\ng_analysis\\5g_summary.txt"
+out = "D:\\ng_analysis\\5g_summary.txt"
 # print(extract_throughput(pa))
-# print(extract_cell_info(pa))
+print(extract_cell_info(pa))
 # txt_log_summary_5g(pa, out)
 
 
