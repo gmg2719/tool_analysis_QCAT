@@ -589,7 +589,9 @@ def concat_signaling(configfile, log_path, output_path):
         if reformat_path.find('/'):
             split_log_path = reformat_path.split('/')
             log_name = split_log_path[-1].split('.')[0]  # remove file extension, Ex. '.txt'
-    path_to_file = os.path.join(output_path, log_name + '_signaling.txt')
+            path_to_file = os.path.join(output_path, log_name + '_signaling.txt')
+        else:
+            path_to_file = os.path.join(output_path, 'log_signaling.txt')
 
     # Empty existed signaling file for new turn
     if is_file_exist(path_to_file):
@@ -608,7 +610,6 @@ def concat_signaling(configfile, log_path, output_path):
             for line in f:
                 pkt_type = re_pkt_type.search(line)
                 if pkt_type != None: # Found 1st line of a packet
-                    a = int(pkt_type.group(1), 16)
                     if int(pkt_type.group(1), 16) in type_short: # Check if signaling packet
                         with open(path_to_file, 'a') as outfile:
                             outfile.write(line)
