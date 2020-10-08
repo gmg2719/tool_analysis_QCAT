@@ -62,10 +62,17 @@ class Convert_Table_Auto(Frame):
 
     def __init__(self, master=None):
         self.cur_dir  = os.getcwd()
-
         Frame.__init__(self, master)
+
         self.master = master
+        window_width = 460
+        window_heigh = 510
+        x_pos = (screen_width / 2) - (window_width / 2)
+        y_pos = (screen_heigh / 2) - (window_heigh / 2)
+        # self.master.geometry("420x200")
+        self.master.geometry('%dx%d+%d+%d' % (window_width, window_heigh, x_pos, y_pos))
         self.master.title("Conver Table Automation")
+
 
         ######################################################################################################
         self.config_file_PATH_label = Label(self.master, text="4G Config file path")
@@ -297,6 +304,12 @@ class QCAT_Auto(Frame):
 
         Frame.__init__(self, master)
         self.master = master
+        window_width = 460
+        window_heigh = 510
+        x_pos = (screen_width / 2) - (window_width / 2)
+        y_pos = (screen_heigh / 2) - (window_heigh / 2)
+        # self.master.geometry("420x200")
+        self.master.geometry('%dx%d+%d+%d' % (window_width, window_heigh, x_pos, y_pos))
         self.master.title("QCAT Automation")
 
         ######################################################################################################
@@ -330,8 +343,8 @@ class QCAT_Auto(Frame):
         ######################################################################################################
 
         self.Import_txt_button = Button(self.master, text='Import to txt', command=self.call_import_txt)
-        self.Import_txt_button.grid(row=9, column=1, columnspan=2, sticky=E, pady=2, padx=3)
-        self.Import_txt_button.config(width=12, heigh=2)
+        self.Import_txt_button.grid(row=9, column=1, columnspan=3, sticky=E, pady=2, padx=3)
+        self.Import_txt_button.config(width=10, heigh=2)
         self.extract_config_button = Button(self.master, text="Extract", command=self.call_extract)
         self.extract_config_button.grid(row=0, column=2, sticky=E, padx=4)
         # self.view_log_button = Button(self.master, text = "View")
@@ -534,7 +547,12 @@ class Uplink_Analysis(Frame):
     def __init__(self, master):
         Frame.__init__(self, master)
         self.master = master
-        self.master.geometry("420x200")
+        window_width = 420
+        window_heigh = 200
+        x_pos = (screen_width/2) - (window_width/2)
+        y_pos = (screen_heigh/2) - (window_heigh/2)
+        # self.master.geometry("420x200")
+        self.master.geometry('%dx%d+%d+%d'%(window_width, window_heigh, x_pos, y_pos))
         self.master.title("Uplink Analysis")
 
         self.PwCtrl_file_PATH_label = Label(self.master, text="Power Control File Path")
@@ -677,7 +695,15 @@ class Uplink_Analysis(Frame):
 # root window created. Here, that would be the only window, but
 # you can later have windows within windows.
 root = Tk()
-root.geometry("300x300")
+# root.geometry("300x300")
+app_width = 300
+app_heigh = 300
+screen_width = root.winfo_screenwidth()
+screen_heigh = root.winfo_screenheight()
+# x = (screen_width/3) - (app_width/2)
+x = 0
+y = (screen_heigh/2) - (app_heigh/2)
+root.geometry('%dx%d+%d+%d'%(app_width, app_heigh, x, y))
 root.resizable(width=False, height=False)
 
 # creation of an instance
