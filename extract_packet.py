@@ -175,7 +175,23 @@ def extract_cell_info(log_file):
     dl_mcs_count = 0
     pusch_count  = 0
 
-    max_ul_tb    = 0
+    max_ul_tb       = 0
+    max_rsrp        = -999
+    max_rsrq        = -999
+    max_ul_mcs      = 0
+    max_dl_mcs      = 0
+    max_ul_rb       = 0
+    max_dl_rb       = 0
+    max_tx_pwr      = -99
+
+    min_ul_tb  = 999999
+    min_rsrp   = 99
+    min_rsrq   = 99
+    min_ul_mcs = 99
+    min_dl_mcs = 99
+    min_ul_rb  = 999
+    min_dl_rb  = 999
+    min_tx_pwr = 99
 
     ml1_measure_found = False
     tx_power_found    = False
@@ -216,6 +232,16 @@ def extract_cell_info(log_file):
                     total_rsrp += rsrp
                     total_rsrq += rsrq
 
+                    # Find min max RSRP, RSRQ
+                    if rsrp > max_rsrp:
+                        max_rsrp = rsrp
+                    if rsrq > max_rsrq:
+                        max_rsrq = rsrq
+                    if rsrp < min_rsrp:
+                        min_rsrp = rsrp
+                    if rsrq < min_rsrq:
+                        min_rsrq = rsrq
+
                     if cell_id not in cell_ids:
                         cell_ids.append(cell_id)
 
@@ -243,6 +269,19 @@ def extract_cell_info(log_file):
                         total_ul_rb  += ul_rb
                         total_tx_pwr += tx_pwr
                         tx_count     += 1
+
+                        # Find min max UL RB
+                        if ul_rb < min_ul_rb:
+                            min_ul_rb = ul_rb
+                        if ul_rb > max_ul_rb:
+                            max_ul_rb = ul_rb
+
+                        # Find min max Tx Power
+                        if tx_pwr < min_tx_pwr:
+                            min_tx_pwr = tx_pwr
+                        if tx_pwr > max_tx_pwr:
+                            max_tx_pwr = tx_pwr
+
                 if line == '\n':
                     tx_power_found = False
                     iline_context = 0
@@ -257,12 +296,21 @@ def extract_cell_info(log_file):
                             total_ul_tb  += tb_size
                             ul_mcs_count += 1
 
-                            # Calculate Max UL TB
+                            # Find min max UL MCS
+                            if ul_mcs > max_ul_mcs:
+                                max_ul_mcs = ul_mcs
+                            if ul_mcs < min_ul_mcs:
+                                min_ul_mcs = ul_mcs
+
+                            # Calculate Min Max UL TB
                             ul_tb.append(tb_size)
                             if len(ul_tb) == 10: # Period of message 0xB883 is 10ms => Consider sliding window 100ms
                                 inst_tb = sum(ul_tb) # Total TB bytes in period of 100ms
+                                if inst_tb < min_ul_tb:
+                                    min_ul_tb = inst_tb
                                 if inst_tb > max_ul_tb:
                                     max_ul_tb = inst_tb
+
                                 ul_tb.pop(0)
 
                         pusch_count += 1
@@ -278,6 +326,19 @@ def extract_cell_info(log_file):
                     total_dl_mcs += dl_mcs
                     total_dl_rb        += dl_rb
                     dl_mcs_count += 1
+
+                    # Find min max DL MCS
+                    if dl_mcs > max_dl_mcs:
+                        max_dl_mcs = dl_mcs
+                    if dl_mcs < min_dl_mcs:
+                        min_dl_mcs = dl_mcs
+
+                    # Find min max DL RB
+                    if dl_rb < min_dl_rb:
+                        min_dl_rb = dl_rb
+                    if dl_rb > max_dl_rb:
+                        max_dl_rb = dl_rb
+
                 if line == '\n':
                     dl_mcs_found = False
                     iline_context = 0
@@ -299,12 +360,16 @@ def extract_cell_info(log_file):
                 seconds_diff =  time_diff.total_seconds()
                 ul_tput    = ceil(total_ul_tb * 8 / 1000 / seconds_diff / 1000 * 100) / 100.0  # Byte => Mb
                 max_ul_tput = ceil(max_ul_tb * 8 / 10000 * 100) / 100 # divide 0.01 second = multiply 100 => 1000000 -> 10000
+                min_ul_tput = ceil(min_ul_tb * 8 / 10000 * 100) / 100
                 if dl_mcs_count != 0:
                     avg_dl_mcs = int(ceil(total_dl_mcs / dl_mcs_count))
                     avg_dl_rb  = int(ceil(total_dl_rb / dl_mcs_count))
 
-                    return cell_ids, avg_rsrp, avg_rsrq, dl_freqs, ul_freqs, dl_bwths, ul_bwths, \
-                           avg_dl_rb, avg_ul_rb, avg_dl_mcs, avg_ul_mcs, avg_tx_pwr, ul_tput, max_ul_tput, ul_bler
+                    return cell_ids, min_rsrp, max_rsrp, avg_rsrp, min_rsrq, max_rsrq, avg_rsrq, \
+                           dl_freqs, ul_freqs, dl_bwths, ul_bwths, \
+                           min_dl_rb, max_dl_rb, avg_dl_rb, min_ul_rb, max_ul_rb, avg_ul_rb, \
+                           min_dl_mcs, max_dl_mcs, avg_dl_mcs, min_ul_mcs, max_ul_mcs, avg_ul_mcs, \
+                           min_tx_pwr, max_tx_pwr, avg_tx_pwr, min_ul_tput, max_ul_tput, ul_tput, ul_bler
 
 def rlc_inst_ul_tput(pre_stat, cur_stat):
     """Calculate instant RLC UL througput every 0.5 second"""
@@ -388,6 +453,13 @@ def extract_throughput(logtxt):
     max_pdcp_ul_byte = 0
     max_pdcp_dl_byte = 0
 
+    min_slot         = 0
+    min_dl_byte      = 99999
+    min_rlc_ul_byte  = 99999
+    min_rlc_dl_byte  = 99999
+    min_pdcp_ul_byte = 99999
+    min_pdcp_dl_byte = 99999
+
     dl_tb          = []
 
     iline         = 0
@@ -417,9 +489,14 @@ def extract_throughput(logtxt):
                                 dl_tb.append((inst_dl_byte, slot_elapsed))
                                 if len(dl_tb) == 20: # Period of 0xB888 message is 5ms => Consider sliding window of 100 ms
                                     dl_byte = dl_tb[19][0] - dl_tb[0][0]
+                                    # Find max min DL bytes
                                     if dl_byte > max_dl_byte:
                                         max_dl_byte = dl_byte
                                         max_slot    = dl_tb[19][1] - dl_tb[0][1]
+                                    if dl_byte < min_dl_byte:
+                                        min_dl_byte = dl_byte
+                                        min_slot    = dl_tb[19][1] - dl_tb[0][1]
+
                                     dl_tb.pop(0) # Remove first element for sliding window
 
                 else:
@@ -443,9 +520,11 @@ def extract_throughput(logtxt):
 
                                     cur_rlc_ul_byte = fill_rlc_ul_stat(last_rlc_stat)
                                     inst_rlc_ul_byte = cur_rlc_ul_byte - pre_rlc_ul_byte
-                                    # Find max transmitted bytes in message 0xB868 period of 0.5 second
+                                    # Find max min transmitted bytes in message 0xB868 period of 0.5 second
                                     if inst_rlc_ul_byte > max_rlc_ul_byte:
                                         max_rlc_ul_byte = inst_rlc_ul_byte
+                                    if inst_rlc_ul_byte < min_rlc_ul_byte:
+                                        min_rlc_ul_byte = inst_rlc_ul_byte
                                     # Store for next calculation
                                     pre_rlc_ul_byte = cur_rlc_ul_byte
                                     # print(int_rlc_ul_byte)
@@ -484,6 +563,8 @@ def extract_throughput(logtxt):
                                             # Find max transmitted bytes in message 0xB860 period of 0.5 second
                                             if inst_pdcp_ul_byte > max_pdcp_ul_byte:
                                                 max_pdcp_ul_byte = inst_pdcp_ul_byte
+                                            if inst_pdcp_ul_byte < min_pdcp_ul_byte:
+                                                min_pdcp_ul_byte = inst_pdcp_ul_byte
                                             # Store for next calculation
                                             pre_pdcp_ul_byte = cur_pdcp_ul_byte
 
@@ -512,6 +593,8 @@ def extract_throughput(logtxt):
                                             # Find max transmitted bytes in message 0xB842 period of 100 miliseconds
                                             if inst_pdcp_dl_byte > max_pdcp_dl_byte:
                                                 max_pdcp_dl_byte = inst_pdcp_dl_byte
+                                            if inst_pdcp_dl_byte < min_pdcp_dl_byte:
+                                                min_pdcp_dl_byte = inst_pdcp_dl_byte
                                             # Store for next calculation
                                             pre_pdcp_dl_byte = cur_pdcp_dl_byte
 
@@ -539,6 +622,8 @@ def extract_throughput(logtxt):
                                                 # Find max transmitted bytes in message 0xB868 period of 0.5 second
                                                 if int_rlc_dl_byte > max_rlc_dl_byte:
                                                     max_rlc_dl_byte = int_rlc_dl_byte
+                                                if int_rlc_dl_byte < min_rlc_dl_byte:
+                                                    min_rlc_dl_byte = int_rlc_dl_byte
                                                 # Store for next calculation
                                                 pre_rlc_dl_byte = cur_rlc_dl_byte
 
@@ -571,44 +656,61 @@ def extract_throughput(logtxt):
 
     # Max throughput calculations
     max_rlc_ul_tput  = ceil(max_rlc_ul_byte * 2 * 8 / 1000000 * 100) / 100.0 # Multiply 2 because period message is 500ms
-    max_rlc_dl_tput  = ceil(max_rlc_dl_byte * 8 / 100000 * 100) / 100.0 # Period is 100ms => *10
+    max_rlc_dl_tput  = ceil(max_rlc_dl_byte * 8 / 1000001 * 10) / 10.0 # Period is 100ms => *10
     max_pdcp_ul_tput = ceil(max_pdcp_ul_byte * 2 * 8 / 1000000 * 100) / 100.0
-    max_pdcp_dl_tput = ceil(max_pdcp_dl_byte * 8 / 100000 * 100) / 100.0
-    max_dl_tput      = ceil(max_dl_byte * 2 * 8 / 1000 / max_slot * 100) / 100.0 # Each slot = 0.5ms
+    max_pdcp_dl_tput = ceil(max_pdcp_dl_byte * 8 / 100000 * 10) / 10.0
+    max_dl_tput      = ceil(max_dl_byte * 2 * 8 / 1000 / max_slot * 10) / 10.0 # Each slot = 0.5ms
+
+    # Min throughput calculations
+    min_rlc_ul_tput = ceil(min_rlc_ul_byte * 2 * 8 / 1000000 * 100) / 100.0  # Multiply 2 because period message is 500ms
+    min_rlc_dl_tput = ceil(min_rlc_dl_byte * 8 / 1000001 * 10) / 10.0  # Period is 100ms => *10
+    min_pdcp_ul_tput = ceil(min_pdcp_ul_byte * 2 * 8 / 1000000 * 100) / 100.0
+    min_pdcp_dl_tput = ceil(min_pdcp_dl_byte * 8 / 100000 * 10) / 10.0
+    min_dl_tput = ceil(min_dl_byte * 2 * 8 / 1000 / min_slot * 10) / 10.0  # Each slot = 0.5ms
 
     return phy_tput_pdsch, mac_tput_dl, rlc_d_tput, rlc_u_tput, pdcp_dl, pdcp_ul, dl_bler, \
-           max_rlc_ul_tput, max_rlc_dl_tput, max_pdcp_ul_tput, max_pdcp_dl_tput, max_dl_tput
+           max_rlc_ul_tput, max_rlc_dl_tput, max_pdcp_ul_tput, max_pdcp_dl_tput, max_dl_tput, \
+           min_rlc_ul_tput, min_rlc_dl_tput, min_pdcp_ul_tput, min_pdcp_dl_tput, min_dl_tput
 
 def txt_log_summary_5g(logfile, outfile):
-    """Report 5G log in brief"""
-    cell_ids, rsrp, rsrq, dl_freqs, ul_freqs, dl_bwths, ul_bwths, dl_rbs, ul_rbs, dl_mcs, ul_mcs, tx_pwr, ul_tput, max_ul_tput, ul_bler = extract_cell_info(logfile)
-    phy_tput_pdsch, mac_tput_dl, rlc_d_tput, rlc_u_tput, pdcp_dl, pdcp_ul, dl_bler, max_rlc_ul_tput, max_rlc_dl_tput, max_pdcp_ul_tput, max_pdcp_dl_tput, max_dl_tput = extract_throughput(logfile)
+    """Report 5G log in brief to a text file"""
+    # Extract cell information
+    cell_ids, min_rsrp, max_rsrp, rsrp, min_rsrq, max_rsrq, rsrq, \
+    dl_freqs, ul_freqs, dl_bwths, ul_bwths, \
+    min_dl_rbs, max_dl_rbs, dl_rbs, min_ul_rbs, max_ul_rbs, ul_rbs, \
+    min_dl_mcs, max_dl_mcs, dl_mcs, min_ul_mcs, max_ul_mcs, ul_mcs, \
+    min_tx_pwr, max_tx_pwr, tx_pwr, min_ul_tput, max_ul_tput, ul_tput, ul_bler = extract_cell_info(logfile)
+
+    # Extract throughput values
+    phy_tput_pdsch, mac_tput_dl, rlc_d_tput, rlc_u_tput, pdcp_dl, pdcp_ul, dl_bler, \
+    max_rlc_ul_tput, max_rlc_dl_tput, max_pdcp_ul_tput, max_pdcp_dl_tput, max_dl_tput, \
+    min_rlc_ul_tput, min_rlc_dl_tput, min_pdcp_ul_tput, min_pdcp_dl_tput, min_dl_tput = extract_throughput(logfile)
 
     with open(outfile, 'w') as f:
         f.write(
             "Serving Physical cell ID list: " + str(cell_ids) + '\n'
-            + "RSRP: " + str(rsrp) + '\n'
-            + "RSRQ: " + str(rsrq) + '\n'
+            + "Min/Max/Avg RSRP: " + str(min_rsrp) + '/' + str(max_rsrp) + '/' + str(rsrp) + '\n'
+            + "Min/Max/Avg RSRQ: " + str(min_rsrq) + '/' + str(max_rsrq) + '/' + str(rsrq) + '\n'
             + "Dlink EARFCN list: " + str(dl_freqs) + '\n'
             + "Uplink EARFCN list: " + str(ul_freqs) + '\n'
             + "Dlink Bandwidth list: " + str(dl_bwths) + '\n'
             + "Uplink Bandwidth list: " + str(ul_bwths) + '\n'
             + "\n# DOWNLINK" + '\n'
-            + "Dlink Physical throughput (Mbps): " + str(max_dl_tput) + '/' + str(phy_tput_pdsch) + '\n'
+            + "Min/Max/Avg PHY DL throughput (Mbps): " + str(min_dl_tput) + '/' + str(max_dl_tput) + '/' + str(phy_tput_pdsch) + '\n'
             # + "DLink MAC Throughput (Mbps): " + str(mac_tput_dl) + '\n'
-            + "DLink RLC Throughput (Mbps): " + str(max_rlc_dl_tput) + '/' + str(rlc_d_tput) + '\n'
-            + "DLink PDCP Throughput (Mbps): " + str(max_pdcp_dl_tput) + '/' + str(pdcp_dl) + '\n'
-            + "Avg RBs: " + str(dl_rbs) + '\n'
-            + "Avg MCS: " + str(dl_mcs) + '\n'
+            + "Min/Max/Avg RLC DL Throughput (Mbps): " + str(min_rlc_dl_tput) + '/' + str(max_rlc_dl_tput) + '/' + str(rlc_d_tput) + '\n'
+            + "Min/Max/Avg PDCP DL Throughput (Mbps): " + str(min_pdcp_dl_tput) + '/' + str(max_pdcp_dl_tput) + '/' + str(pdcp_dl) + '\n'
+            + "Min/Max/Avg RBs: " + str(min_dl_rbs) + '/' + str(max_dl_rbs) + '/' + str(dl_rbs) + '\n'
+            + "Min/Max/Avg MCS: " + str(min_dl_mcs) + '/' + str(max_dl_mcs) + '/' + str(dl_mcs) + '\n'
             + "Avg DLink BLER: " + str(dl_bler) + '%'+ '\n'
             + "\n# UPLINK" + '\n'
-            + "Uplink Physical throughput (Mbps): " + str(max_ul_tput) + '/' + str(ul_tput) + '\n'
-            + "Uplink RLC throughput (Mbps): " + str(max_rlc_ul_tput) + '/' + str(rlc_u_tput) + '\n'
-            + "Uplink PDCP throughput (Mbps): " + str(max_pdcp_ul_tput) + '/' + str(pdcp_ul) + '\n'
-            + "Avg RBs: " + str(ul_rbs) + '\n'
-            + "Avg MCS: " + str(ul_mcs) + '\n'
+            + "Min/Max/Avg PHY UL throughput (Mbps): " + str(min_ul_tput) + '/' + str(max_ul_tput) + '/' + str(ul_tput) + '\n'
+            + "Min/Max/Avg RLC UL throughput (Mbps): " + str(min_rlc_ul_tput) + '/' + str(max_rlc_ul_tput) + '/' + str(rlc_u_tput) + '\n'
+            + "Min/Max/Avg PDCP UL throughput (Mbps): " + str(min_pdcp_ul_tput) + '/' + str(max_pdcp_ul_tput) + '/' + str(pdcp_ul) + '\n'
+            + "Min/Max/Avg RBs: " + str(min_ul_rbs) + '/' + str(max_ul_rbs) + '/' + str(ul_rbs) + '\n'
+            + "Min/Max/Avg MCS: " + str(min_ul_mcs) + '/' + str(max_ul_mcs) + '/' + str(ul_mcs) + '\n'
             + "Avg UpLink BLER: " + str(ul_bler) + '%' + '\n'
-            + "Avg PUSCH Actual Tx Power (dBm): " + str(tx_pwr) + '\n'
+            + "Min/Max/Avg PUSCH Actual Tx Power (dBm): " + str(min_tx_pwr) + '/' + str(max_tx_pwr) + '/' + str(tx_pwr) + '\n'
         )
 
 pa = "D:\\ng_analysis\\UlDl-90-9-1.txt"
