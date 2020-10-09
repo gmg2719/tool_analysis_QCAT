@@ -17,7 +17,8 @@ log_type_list_full = []
 
 #Variable for QCAT
 QCAT_config_file_PATH = r''
-QCAT_raw_log_file_PATH = r''
+# QCAT_raw_log_file_PATH = r''
+QCAT_raw_log_file_PATH = []
 QCAT_output_directory = r''
 QCAT_log_list_brief = []
 QCAT_log_list_full = []

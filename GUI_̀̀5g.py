@@ -1,6 +1,6 @@
 # from tkinter import *
 from tkinter import Frame, Text, Button, Menu, Label, W, E, END, Tk
-from tkinter.filedialog import askopenfilename, askdirectory, Toplevel, CENTER, askopenfilenames
+from tkinter.filedialog import askopenfilename, askdirectory, Toplevel, CENTER, askopenfilenames, DISABLED, NORMAL
 from tkinter.messagebox import *
 from tkinter.scrolledtext import ScrolledText
 
@@ -19,9 +19,6 @@ from variable import *
 # log_file_PATH = r''
 # csv_folder_PATH = r''
 # csv_dict = {}
-#
-# log_type_list_brief = []
-# log_type_list_full = []
 
 class Window(Frame):
     def __init__(self, master):
@@ -265,6 +262,8 @@ class Convert_Table_Auto(Frame):
             self.log_type_txt.insert(END, "You need to select csv directory before convert\n")
             return
         try:
+            #TODO: Fix error: No grid name 'LTE Serving Cell Meas vs .TIme)
+
             # Filter signaling message
             from tool_summary import concat_signaling
             self.log_type_txt.insert(END, "Filtering signal packets...\n")
@@ -276,7 +275,8 @@ class Convert_Table_Auto(Frame):
             self.log_type_txt.insert(END, "Converting! Please wait...\n")
             for t in log_type_list_brief:  # init dict of log data list for csv
                 csv_dict[t] = [0, []]
-            parse_log(log_file_PATH, log_type_list_brief, csv_dict)
+            for path in log_file_PATH:
+                parse_log(path, log_type_list_brief, csv_dict)
             write_csv(csv_folder_PATH, csv_dict)
 
 
@@ -345,7 +345,7 @@ class QCAT_Auto(Frame):
         self.Import_txt_button = Button(self.master, text='Import to txt', command=self.call_import_txt)
         self.Import_txt_button.grid(row=9, column=1, columnspan=3, sticky=E, pady=2, padx=3)
         self.Import_txt_button.config(width=10, heigh=2)
-        self.extract_config_button = Button(self.master, text="Extract", command=self.call_extract)
+        self.extract_config_button = Button(self.master, text="Extract", state=DISABLED, command=self.call_extract)
         self.extract_config_button.grid(row=0, column=2, sticky=E, padx=4)
         # self.view_log_button = Button(self.master, text = "View")
         # self.view_log_button.grid(row=1, column=2, sticky=E, padx=4)
@@ -402,6 +402,7 @@ class QCAT_Auto(Frame):
             # self.update_text()
             self.config_file_PATH_txt.delete("1.0", "end")
             self.config_file_PATH_txt.insert(END, QCAT_config_file_PATH)
+            self.extract_config_button.config(state=NORMAL)
         else:
             showerror("Error", "No file selected")
 
@@ -423,6 +424,7 @@ class QCAT_Auto(Frame):
             # self.update_text()
             self.config_file_5g_PATH_txt.delete("1.0", "end")
             self.config_file_5g_PATH_txt.insert(END, config_file_PATH)
+            self.extract_config_button.config(state=NORMAL)
         else:
             showerror("Error", "No file selected")
 
@@ -433,12 +435,14 @@ class QCAT_Auto(Frame):
         # Test
         # global log_file_PATH
         # log_file_PATH = r'G:\PycharmProjects\Log_Extractor\Test\log_test.txt'
-        log_path = askopenfilename(initialdir=self.cur_dir, title="Select file",
+        log_path = askopenfilenames(initialdir=self.cur_dir, title="Select file",
                                    filetypes=(("raw log file", "*.qmdl *.dlf *.isf"), ("dlf file", "*.dlf"), ("all files", "*.*")))
         if log_path:
             global QCAT_raw_log_file_PATH
-            QCAT_raw_log_file_PATH = log_path
-            print(log_path)
+            # QCAT_raw_log_file_PATH = log_path
+            for path in log_path:
+                QCAT_raw_log_file_PATH.append(path)
+            # print(log_path)
             self.raw_log_file_PATH_txt.delete("1.0", "end")
             self.raw_log_file_PATH_txt.insert(END, QCAT_raw_log_file_PATH)
         else:
@@ -519,6 +523,7 @@ class QCAT_Auto(Frame):
             QCAT_Execute(QCAT_raw_log_file_PATH, QCAT_log_list_brief, QCAT_output_directory)
 
             # Export all grids according to analyzers in configuration file
+            #TODO : Put import on the top
             from QCAT_Lib.QCAT_Basic import qcat_export_grids
             from tool_summary import path_to_outfile
             qcat_export_grids(QCAT_raw_log_file_PATH, grids.values(), QCAT_output_directory)
@@ -547,43 +552,56 @@ class Uplink_Analysis(Frame):
     def __init__(self, master):
         Frame.__init__(self, master)
         self.master = master
-        window_width = 420
-        window_heigh = 200
+        window_width = 480
+        window_heigh = 230
         x_pos = (screen_width/2) - (window_width/2)
         y_pos = (screen_heigh/2) - (window_heigh/2)
         # self.master.geometry("420x200")
         self.master.geometry('%dx%d+%d+%d'%(window_width, window_heigh, x_pos, y_pos))
         self.master.title("Uplink Analysis")
 
+        self.Auto_detect_file_input_label = Label(self.master, text='Uplink Directory')
+        self.Auto_detect_file_input_label.grid(row=0, column=0, sticky=W, pady=2)
+        self.Auto_detect_file_input_txt = Text(self.master, heigh=1, width=35)
+        self.Auto_detect_file_input_txt.grid(row=0, column=1, pady=2, padx=2)
+
         self.PwCtrl_file_PATH_label = Label(self.master, text="Power Control File Path")
-        self.PwCtrl_file_PATH_label.grid(row=0, column=0, sticky=W, pady=2)
-        self.PwCtrl_file_PATH_txt = Text(self.master, heigh=1, width=35)
-        self.PwCtrl_file_PATH_txt.grid(row=0, column=1, pady=2)
+        self.PwCtrl_file_PATH_label.grid(row=1, column=0, sticky=W, pady=2)
+        self.PwCtrl_file_PATH_txt = Text(self.master, heigh=1, width=42)
+        self.PwCtrl_file_PATH_txt.grid(row=1, column=1, columnspan=2, pady=2)
 
         self.DCI_file_PATH_label = Label(self.master, text="DCI File Path")
-        self.DCI_file_PATH_label.grid(row=1, column=0, sticky=W, pady=2)
-        self.DCI_file_PATH_txt = Text(self.master, heigh=1, width=35)
-        self.DCI_file_PATH_txt.grid(row=1, column=1, pady=2)
+        self.DCI_file_PATH_label.grid(row=2, column=0, sticky=W, pady=2)
+        self.DCI_file_PATH_txt = Text(self.master, heigh=1, width=42)
+        self.DCI_file_PATH_txt.grid(row=2, column=1, columnspan=2, pady=2)
 
         self.TxReport_file_PATH_label = Label(self.master, text="Tx Report File Path")
-        self.TxReport_file_PATH_label.grid(row=2, column=0, sticky=W, pady=2)
-        self.TxReport_file_PATH_txt = Text(self.master, heigh=1, width=35)
-        self.TxReport_file_PATH_txt.grid(row=2, column=1, pady=2)
+        self.TxReport_file_PATH_label.grid(row=3, column=0, sticky=W, pady=2)
+        self.TxReport_file_PATH_txt = Text(self.master, heigh=1, width=42)
+        self.TxReport_file_PATH_txt.grid(row=3, column=1, columnspan=2, pady=2)
 
         self.PHICH_file_PATH_label = Label(self.master, text="PHICH File Path")
-        self.PHICH_file_PATH_label.grid(row=3, column=0, sticky=W, pady=2)
-        self.PHICH_file_PATH_txt = Text(self.master, heigh=1, width=35)
-        self.PHICH_file_PATH_txt.grid(row=3, column=1, pady=2)
+        self.PHICH_file_PATH_label.grid(row=4, column=0, sticky=W, pady=2)
+        self.PHICH_file_PATH_txt = Text(self.master, heigh=1, width=42)
+        self.PHICH_file_PATH_txt.grid(row=4, column=1, columnspan=2, pady=2)
 
         self.Output_dir_label = Label(self.master, text="Output directory")
-        self.Output_dir_label.grid(row=4, column=0, sticky=W, pady=2)
-        self.Output_dir_txt = Text(self.master, heigh=1, width=35)
-        self.Output_dir_txt.grid(row=4, column=1, pady=2)
+        self.Output_dir_label.grid(row=5, column=0, sticky=W, pady=2)
+        self.Output_dir_txt = Text(self.master, heigh=1, width=42)
+        self.Output_dir_txt.grid(row=5, column=1, columnspan=2, pady=2)
 
         # Button config
-        self.merge_button = Button(self.master, text = 'Merge Table', command = self.call_merge)
+        self.auto_button = Button(self.master, text='Auto find', command=self.find_files)
+        self.auto_button.grid(row=0, column=2, columnspan=2, sticky=E)
+
+        self.merge_button = Button(self.master, text='Merge Table', state= DISABLED, command=self.call_merge)
         self.merge_button.config(width=10, heigh=4)
-        self.merge_button.grid(row = 5, column=0, columnspan = 2, sticky = E)
+        self.merge_button.grid(row=6, column=0, columnspan=3, sticky=E)
+        #Merge condition in order to press merge button
+        self.merge_condition_1 = False
+        self.merge_condition_2 = False
+        self.merge_condition_3 = False
+        self.merge_condition_4 = False
 
 
 
@@ -597,6 +615,7 @@ class Uplink_Analysis(Frame):
         # adds a command to the menu option, calling it exit, and the
         # command it runs on event is client_exit
 
+        self.file.add_command(label="Set input dir", command=self.set_input_dir)
         self.file.add_command(label="Open Power Control file", command=self.open_PwCtrl)
         self.file.add_command(label="Open DCI file", command=self.open_DCI)
         self.file.add_command(label="Open Tx Report file", command=self.open_TxReport)
@@ -614,6 +633,59 @@ class Uplink_Analysis(Frame):
         self.help.add_command(label="Instruction", command=self.show_instruction)
         self.menu.add_cascade(label="Help", menu=self.help)
 
+    def set_input_dir(self):
+        dir = askdirectory()
+        if dir:
+            global input_dir
+            input_dir = dir
+            # print(input_dir)
+            self.Auto_detect_file_input_txt.delete("1.0", "end")
+            self.Auto_detect_file_input_txt.insert(END, input_dir)
+        else:
+            showerror("Error", "No directory selected")
+
+
+    def check_merge_condition(self):
+        #Check if merge conditions are met, then turn the button on/off
+        if self.merge_condition_1 and (self.merge_condition_2 or self.merge_condition_3 or self.merge_condition_4):
+            return True
+        else:
+            return False
+
+
+    def find_files(self):
+        global input_dir, pw_ctrl_path, dci_path, tx_report_path, phich_path
+        for file in os.listdir(input_dir):
+            if file.endswith(".csv"):
+                if file == '0xB16C.csv':
+                    dci_path = os.path.join(input_dir, file)
+                    self.DCI_file_PATH_txt.delete("1.0", "end")
+                    self.DCI_file_PATH_txt.insert(END, dci_path)
+                    self.merge_condition_2 = True
+                    if self.check_merge_condition():
+                        self.merge_button.config(state=NORMAL)
+                elif file == '0xB139.csv':
+                    tx_report_path = os.path.join(input_dir, file)
+                    self.TxReport_file_PATH_txt.delete("1.0", "end")
+                    self.TxReport_file_PATH_txt.insert(END, tx_report_path)
+                    self.merge_condition_3 = True
+                    if self.check_merge_condition():
+                        self.merge_button.config(state=NORMAL)
+                elif file == '0xB16E.csv':
+                    pw_ctrl_path = os.path.join(input_dir, file)
+                    self.PwCtrl_file_PATH_txt.delete("1.0", "end")
+                    self.PwCtrl_file_PATH_txt.insert(END, pw_ctrl_path)
+                    self.merge_condition_1 = True
+                    if self.check_merge_condition():
+                        self.merge_button.config(state=NORMAL)
+                elif file == '0xB12C.csv':
+                    phich_path = os.path.join(input_dir, file)
+                    self.PHICH_file_PATH_txt.delete("1.0", "end")
+                    self.PHICH_file_PATH_txt.insert(END, phich_path)
+                    self.merge_condition_4 = True
+                    if self.check_merge_condition():
+                        self.merge_button.config(state=NORMAL)
+
     def open_PwCtrl(self):
         filename = askopenfilename(initialdir='/', title="Select file",
                                    filetypes=(("csv file", "*.csv"), ("all files", "*.*")))
@@ -624,6 +696,9 @@ class Uplink_Analysis(Frame):
             # self.update_text()
             self.PwCtrl_file_PATH_txt.delete("1.0", "end")
             self.PwCtrl_file_PATH_txt.insert(END, pw_ctrl_path)
+            self.merge_condition_1 = True
+            if self.check_merge_condition():
+                self.merge_button.config(state = NORMAL)
         else:
             showerror("Error", "No file selected")
 
@@ -637,6 +712,9 @@ class Uplink_Analysis(Frame):
             # self.update_text()
             self.DCI_file_PATH_txt.delete("1.0", "end")
             self.DCI_file_PATH_txt.insert(END, dci_path)
+            self.merge_condition_2 = True
+            if self.check_merge_condition():
+                self.merge_button.config(state = NORMAL)
         else:
             showerror("Error", "No file selected")
 
@@ -650,6 +728,9 @@ class Uplink_Analysis(Frame):
             # self.update_text()
             self.TxReport_file_PATH_txt.delete("1.0", "end")
             self.TxReport_file_PATH_txt.insert(END, tx_report_path)
+            self.merge_condition_3 = True
+            if self.check_merge_condition():
+                self.merge_button.config(state = NORMAL)
         else:
             showerror("Error", "No file selected")
     def open_PHICH(self):
@@ -662,6 +743,9 @@ class Uplink_Analysis(Frame):
             # self.update_text()
             self.PHICH_file_PATH_txt.delete("1.0", "end")
             self.PHICH_file_PATH_txt.insert(END, phich_path)
+            self.merge_condition_4 = True
+            if self.check_merge_condition():
+                self.merge_button.config(state = NORMAL)
         else:
             showerror("Error", "No file selected")
     def set_dir(self):
