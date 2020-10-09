@@ -78,9 +78,9 @@ def parse_log(logfilePath, log_type_list_brief, csv_dict):
     log_time, log_type = "", ""
     time_start = process_time()
 
-    # logfile = open(logfilePath, "rt")
+    logfile = open(logfilePath, "rt")
     # logfile = read_file(logfilePath)
-    logfile = combine_log(logfilePath)
+    # logfile = combine_log(logfilePath)
 
     # Browse through log file, collect each log packet
     for line in logfile:
