@@ -162,6 +162,7 @@ class Convert_Table_Auto(Frame):
             print(config_file_PATH)
             # self.update_text()
             self.config_file_PATH_txt.delete("1.0", "end")
+            self.config_file_5g_PATH_txt.delete("1.0", "end")
             self.config_file_PATH_txt.insert(END, config_file_PATH)
         else:
             showerror("Error", "No file selected")
@@ -182,6 +183,7 @@ class Convert_Table_Auto(Frame):
             config_file_PATH = filename
             print(config_file_PATH)
             # self.update_text()
+            self.config_file_PATH_txt.delete("1.0", "end")
             self.config_file_5g_PATH_txt.delete("1.0", "end")
             self.config_file_5g_PATH_txt.insert(END, config_file_PATH)
         else:
@@ -398,9 +400,10 @@ class QCAT_Auto(Frame):
         if filename:
             global QCAT_config_file_PATH
             QCAT_config_file_PATH = filename
-            print(config_file_PATH)
+            print(QCAT_config_file_PATH)
             # self.update_text()
             self.config_file_PATH_txt.delete("1.0", "end")
+            self.config_file_5g_PATH_txt.delete("1.0", "end")
             self.config_file_PATH_txt.insert(END, QCAT_config_file_PATH)
             self.extract_config_button.config(state=NORMAL)
         else:
@@ -422,6 +425,7 @@ class QCAT_Auto(Frame):
             config_file_PATH = filename
             print(config_file_PATH)
             # self.update_text()
+            self.config_file_PATH_txt.delete("1.0", "end")
             self.config_file_5g_PATH_txt.delete("1.0", "end")
             self.config_file_5g_PATH_txt.insert(END, config_file_PATH)
             self.extract_config_button.config(state=NORMAL)
