@@ -327,6 +327,13 @@ def extract_dl_bler_tput(log_path=None):
 
     total_dl_tput = 0
     total_bler    = 0
+
+    max_dl_tput   = 0
+    max_bler      = 0.0
+
+    min_dl_tput   = 99999
+    min_bler      = 100.0
+
     dl_tput_count = 0
     bler_count    = 0
 
@@ -336,12 +343,26 @@ def extract_dl_bler_tput(log_path=None):
             qual = line.split(',')
             if len(qual) > 5:
                 if qual[2] != '':
-                    total_dl_tput  += float(qual[2])
+                    inst_dl_tput = float(qual[2])
+                    total_dl_tput  += inst_dl_tput
                     dl_tput_count  += 1
 
+                    # Find min max DL throughput
+                    if inst_dl_tput > max_dl_tput:
+                        max_dl_tput = inst_dl_tput
+                    if inst_dl_tput < min_dl_tput:
+                        min_dl_tput = inst_dl_tput
+
                 if qual[5] != '':
-                    total_bler += float(qual[5])
+                    inst_dl_bler    = float(qual[5])
+                    total_bler += inst_dl_bler
                     bler_count += 1
+
+                    # Find min max DL BLER
+                    if inst_dl_bler > max_bler:
+                        max_bler = inst_dl_bler
+                    if inst_dl_bler < min_bler:
+                        min_bler = inst_dl_bler
 
     # Change exprorted file name
     change_file_name(log_path, qual_file_path)
@@ -568,14 +589,16 @@ def read_2nd_config(configfile=None):
     types_long = []
     types_short = []
     re_LOG_type = re.compile('(0x\w{4})')
+
     if configfile == None:
         return
     with open(configfile) as f:
         for line in f:
-            short = re_LOG_type.search(line)
-            if short:
-                types_short.append(int(short.group(1), 16))
-                types_long.append(line)
+            if line.find('<signaling>') != -1 and line.find('#') == -1:
+                short = re_LOG_type.search(line)
+                if short:
+                    types_short.append(int(short.group(1), 16))
+                    types_long.append(line)
 
     return types_short, types_long
 
@@ -631,10 +654,10 @@ def concat_signaling(configfile, log_path, output_path):
 
 # test_export()
 # config_f = "D:\\ng_analysis\\tool_analysis_QCAT\\4g_signaling.cfg"
-raw_log = "D:\\ng_analysis\\tool_analysis_QCAT\\QCAT_input\\05-22.16-18.isf"
+# raw_log = "D:\\ng_analysis\\tool_analysis_QCAT\\QCAT_input\\05-22.16-18.isf"
 # raw_log = "D:\\ng_analysis\\tool_analysis_QCAT\\QCAT_output\\data15_02_35.txt"
-out_path = "D:\\ng_analysis\\tool_analysis_QCAT\\\\QCAT_output\\"
-print(extract_pci_rsrp(raw_log))
+# out_path = "D:\\ng_analysis\\tool_analysis_QCAT\\\\QCAT_output\\"
+# print(extract_pci_rsrp(raw_log))
 # print(extract_ul_rb_mcs(raw_log))
 # print(extract_dl_tput())
 # print(extract_ul_pwr_bler_tput(raw_log))
