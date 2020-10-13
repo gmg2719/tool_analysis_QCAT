@@ -1,0 +1,1034 @@
+2020 Jul 15  05:59:27.154  [ED]  0xB821  NR5G RRC OTA Packet  --  BCCH_BCH / Mib
+Pkt Version = 7
+RRC Release Number.Major.minor = 15.4.1
+Radio Bearer ID = 255, Physical Cell ID = 32
+Freq = 645504
+Sfn = 0, SubFrameNum = 0
+slot = 0
+PDU Number = BCCH_BCH Message,    Msg Length = 4
+SIB Mask in SI =  0x00
+
+Interpreted PDU:
+
+value BCCH-BCH-Message ::= 
+{
+  message mib : 
+    {
+      systemFrameNumber '100001'B,
+      subCarrierSpacingCommon scs30or120,
+      ssb-SubcarrierOffset 0,
+      dmrs-TypeA-Position pos3,
+      pdcch-ConfigSIB1 
+      {
+        controlResourceSetZero 10,
+        searchSpaceZero 0
+      },
+      cellBarred notBarred,
+      intraFreqReselection allowed,
+      spare '0'B
+    }
+}
+
+
+	Length:  40
+	Header:  28 00 21 B8 ED 55 5B F5 44 33 EE 00 
+	Payload: 07 00 00 00 0F 41 FF 20 00 80 D9 09 
+	         00 00 00 00 00 01 00 00 00 00 04 00 
+	         43 0D 04 A4 
+
+2020 Jul 15  05:59:27.566  [43]  0xB821  NR5G RRC OTA Packet  --  RRC_RECONFIG
+Pkt Version = 7
+RRC Release Number.Major.minor = 15.4.1
+Radio Bearer ID = 1, Physical Cell ID = 0
+Freq = 0
+Sfn = N/A, SubFrameNum = N/A
+slot = 0
+PDU Number = RRC_RECONFIG Message,    Msg Length = 312
+SIB Mask in SI =  0x00
+
+Interpreted PDU:
+
+value RRCReconfiguration ::= 
+{
+  rrc-TransactionIdentifier 0,
+  criticalExtensions rrcReconfiguration : 
+    {
+      secondaryCellGroup 
+        CONTAINING
+        {
+          cellGroupId 1,
+          rlc-BearerToAddModList 
+          {
+            {
+              logicalChannelIdentity 4,
+              servedRadioBearer drb-Identity : 3,
+              rlc-Config am : 
+                {
+                  ul-AM-RLC 
+                  {
+                    sn-FieldLength size18,
+                    t-PollRetransmit ms30,
+                    pollPDU p128,
+                    pollByte kB125,
+                    maxRetxThreshold t32
+                  },
+                  dl-AM-RLC 
+                  {
+                    sn-FieldLength size18,
+                    t-Reassembly ms200,
+                    t-StatusProhibit ms20
+                  }
+                },
+              mac-LogicalChannelConfig 
+              {
+                ul-SpecificParameters 
+                {
+                  priority 2,
+                  prioritisedBitRate kBps8,
+                  bucketSizeDuration ms100,
+                  logicalChannelGroup 1,
+                  schedulingRequestID 0,
+                  logicalChannelSR-Mask FALSE,
+                  logicalChannelSR-DelayTimerApplied FALSE
+                }
+              }
+            }
+          },
+          mac-CellGroupConfig 
+          {
+            schedulingRequestConfig 
+            {
+              schedulingRequestToAddModList 
+              {
+                {
+                  schedulingRequestId 0,
+                  sr-ProhibitTimer ms4,
+                  sr-TransMax n64
+                }
+              }
+            },
+            bsr-Config 
+            {
+              periodicBSR-Timer sf10,
+              retxBSR-Timer sf10
+            },
+            tag-Config 
+            {
+              tag-ToAddModList 
+              {
+                {
+                  tag-Id 0,
+                  timeAlignmentTimer infinity
+                }
+              }
+            },
+            phr-Config setup : 
+              {
+                phr-PeriodicTimer infinity,
+                phr-ProhibitTimer sf1000,
+                phr-Tx-PowerFactorChange infinity,
+                multiplePHR TRUE,
+                dummy FALSE,
+                phr-Type2OtherCell FALSE,
+                phr-ModeOtherCG real
+              },
+            skipUplinkTxDynamic FALSE
+          },
+          physicalCellGroupConfig 
+          {
+            p-NR-FR1 33,
+            pdsch-HARQ-ACK-Codebook dynamic
+          },
+          spCellConfig 
+          {
+            servCellIndex 1,
+            reconfigurationWithSync 
+            {
+              spCellConfigCommon 
+              {
+                physCellId 32,
+                downlinkConfigCommon 
+                {
+                  frequencyInfoDL 
+                  {
+                    absoluteFrequencySSB 645504,
+                    frequencyBandList 
+                    {
+                      78
+                    },
+                    absoluteFrequencyPointA 642228,
+                    scs-SpecificCarrierList 
+                    {
+                      {
+                        offsetToCarrier 0,
+                        subcarrierSpacing kHz30,
+                        carrierBandwidth 273
+                      }
+                    }
+                  },
+                  initialDownlinkBWP 
+                  {
+                    genericParameters 
+                    {
+                      locationAndBandwidth 1099,
+                      subcarrierSpacing kHz30
+                    },
+                    pdcch-ConfigCommon setup : 
+                      {
+                        commonControlResourceSet 
+                        {
+                          controlResourceSetId 1,
+                          frequencyDomainResources '11111111 11111111 00000000 00000000 00000000 00000'B,
+                          duration 1,
+                          cce-REG-MappingType nonInterleaved : NULL,
+                          precoderGranularity allContiguousRBs
+                        },
+                        commonSearchSpaceList 
+                        {
+                          {
+                            searchSpaceId 1,
+                            controlResourceSetId 1,
+                            monitoringSlotPeriodicityAndOffset sl1 : NULL,
+                            monitoringSymbolsWithinSlot '10000000 000000'B,
+                            nrofCandidates 
+                            {
+                              aggregationLevel1 n1,
+                              aggregationLevel2 n1,
+                              aggregationLevel4 n1,
+                              aggregationLevel8 n1,
+                              aggregationLevel16 n1
+                            },
+                            searchSpaceType common : 
+                              {
+                                dci-Format0-0-AndFormat1-0 
+                                {
+                                }
+                              }
+                          }
+                        },
+                        ra-SearchSpace 1
+                      },
+                    pdsch-ConfigCommon setup : 
+                      {
+                        pdsch-TimeDomainAllocationList 
+                        {
+                          {
+                            mappingType typeA,
+                            startSymbolAndLength 66
+                          }
+                        }
+                      }
+                  }
+                },
+                uplinkConfigCommon 
+                {
+                  frequencyInfoUL 
+                  {
+                    scs-SpecificCarrierList 
+                    {
+                      {
+                        offsetToCarrier 0,
+                        subcarrierSpacing kHz30,
+                        carrierBandwidth 273
+                      }
+                    },
+                    p-Max 33
+                  },
+                  initialUplinkBWP 
+                  {
+                    genericParameters 
+                    {
+                      locationAndBandwidth 1099,
+                      subcarrierSpacing kHz30
+                    },
+                    rach-ConfigCommon setup : 
+                      {
+                        rach-ConfigGeneric 
+                        {
+                          prach-ConfigurationIndex 159,
+                          msg1-FDM one,
+                          msg1-FrequencyStart 1,
+                          zeroCorrelationZoneConfig 3,
+                          preambleReceivedTargetPower -60,
+                          preambleTransMax n200,
+                          powerRampingStep dB0,
+                          ra-ResponseWindow sl20
+                        },
+                        totalNumberOfRA-Preambles 63,
+                        ssb-perRACH-OccasionAndCB-PreamblesPerSSB one : n60,
+                        groupBconfigured 
+                        {
+                          ra-Msg3SizeGroupA b56,
+                          messagePowerOffsetGroupB minusinfinity,
+                          numberOfRA-PreamblesGroupA 60
+                        },
+                        ra-ContentionResolutionTimer sf8,
+                        prach-RootSequenceIndex l139 : 32,
+                        msg1-SubcarrierSpacing kHz30,
+                        restrictedSetConfig unrestrictedSet
+                      },
+                    pusch-ConfigCommon setup : 
+                      {
+                        pusch-TimeDomainAllocationList 
+                        {
+                          {
+                            k2 4,
+                            mappingType typeA,
+                            startSymbolAndLength 27
+                          }
+                        },
+                        msg3-DeltaPreamble 1,
+                        p0-NominalWithGrant 11
+                      },
+                    pucch-ConfigCommon setup : 
+                      {
+                        pucch-GroupHopping disable,
+                        p0-nominal -100
+                      }
+                  },
+                  dummy infinity
+                },
+                n-TimingAdvanceOffset n25600,
+                ssb-PositionsInBurst mediumBitmap : '10000000'B,
+                ssb-periodicityServingCell ms20,
+                dmrs-TypeA-Position pos3,
+                subcarrierSpacing kHz30,
+                tdd-UL-DL-ConfigurationCommon 
+                {
+                  referenceSubcarrierSpacing kHz30,
+                  pattern1 
+                  {
+                    dl-UL-TransmissionPeriodicity ms2p5,
+                    nrofDownlinkSlots 3,
+                    nrofDownlinkSymbols 0,
+                    nrofUplinkSlots 1,
+                    nrofUplinkSymbols 0
+                  }
+                },
+                ss-PBCH-BlockPower 12
+              },
+              newUE-Identity 20000,
+              t304 ms10000,
+              rach-ConfigDedicated uplink : 
+                {
+                  cfra 
+                  {
+                    occasions 
+                    {
+                      rach-ConfigGeneric 
+                      {
+                        prach-ConfigurationIndex 159,
+                        msg1-FDM one,
+                        msg1-FrequencyStart 1,
+                        zeroCorrelationZoneConfig 3,
+                        preambleReceivedTargetPower -60,
+                        preambleTransMax n200,
+                        powerRampingStep dB0,
+                        ra-ResponseWindow sl20
+                      },
+                      ssb-perRACH-Occasion one
+                    },
+                    resources ssb : 
+                      {
+                        ssb-ResourceList 
+                        {
+                          {
+                            ssb 0,
+                            ra-PreambleIndex 60
+                          }
+                        },
+                        ra-ssb-OccasionMaskIndex 0
+                      }
+                  }
+                }
+            },
+            rlf-TimersAndConstants setup : 
+              {
+                t310 ms2000,
+                n310 n20,
+                n311 n1
+              },
+            spCellConfigDedicated 
+            {
+              initialDownlinkBWP 
+              {
+                pdcch-Config setup : 
+                  {
+                    controlResourceSetToAddModList 
+                    {
+                      {
+                        controlResourceSetId 2,
+                        frequencyDomainResources '00000000 00000000 00001111 11111111 11110000 00000'B,
+                        duration 1,
+                        cce-REG-MappingType nonInterleaved : NULL,
+                        precoderGranularity allContiguousRBs
+                      }
+                    },
+                    searchSpacesToAddModList 
+                    {
+                      {
+                        searchSpaceId 3,
+                        controlResourceSetId 2,
+                        monitoringSlotPeriodicityAndOffset sl1 : NULL,
+                        monitoringSymbolsWithinSlot '10000000 000000'B,
+                        nrofCandidates 
+                        {
+                          aggregationLevel1 n0,
+                          aggregationLevel2 n0,
+                          aggregationLevel4 n0,
+                          aggregationLevel8 n0,
+                          aggregationLevel16 n1
+                        },
+                        searchSpaceType ue-Specific : 
+                          {
+                            dci-Formats formats0-1-And-1-1
+                          }
+                      }
+                    }
+                  },
+                pdsch-Config setup : 
+                  {
+                    dmrs-DownlinkForPDSCH-MappingTypeA setup : 
+                      {
+                        scramblingID0 32,
+                        scramblingID1 32
+                      },
+                    tci-StatesToAddModList 
+                    {
+                      {
+                        tci-StateId 0,
+                        qcl-Type1 
+                        {
+                          bwp-Id 0,
+                          referenceSignal csi-rs : 0,
+                          qcl-Type typeA
+                        }
+                      }
+                    },
+                    resourceAllocation resourceAllocationType1,
+                    pdsch-TimeDomainAllocationList setup : 
+                      {
+                        {
+                          k0 0,
+                          mappingType typeA,
+                          startSymbolAndLength 40
+                        }
+                      },
+                    rbg-Size config1,
+                    mcs-Table qam256,
+                    prb-BundlingType staticBundling : 
+                      {
+                        bundleSize wideband
+                      }
+                  }
+              },
+              firstActiveDownlinkBWP-Id 0,
+              uplinkConfig 
+              {
+                initialUplinkBWP 
+                {
+                  pucch-Config setup : 
+                    {
+                      resourceSetToAddModList 
+                      {
+                        {
+                          pucch-ResourceSetId 0,
+                          resourceList 
+                          {
+                            0,
+                            1,
+                            2
+                          }
+                        },
+                        {
+                          pucch-ResourceSetId 1,
+                          resourceList 
+                          {
+                            4,
+                            5
+                          }
+                        }
+                      },
+                      resourceToAddModList 
+                      {
+                        {
+                          pucch-ResourceId 0,
+                          startingPRB 2,
+                          format format0 : 
+                            {
+                              initialCyclicShift 0,
+                              nrofSymbols 1,
+                              startingSymbolIndex 6
+                            }
+                        },
+                        {
+                          pucch-ResourceId 1,
+                          startingPRB 2,
+                          format format0 : 
+                            {
+                              initialCyclicShift 1,
+                              nrofSymbols 1,
+                              startingSymbolIndex 6
+                            }
+                        },
+                        {
+                          pucch-ResourceId 2,
+                          startingPRB 2,
+                          format format0 : 
+                            {
+                              initialCyclicShift 2,
+                              nrofSymbols 1,
+                              startingSymbolIndex 6
+                            }
+                        },
+                        {
+                          pucch-ResourceId 3,
+                          startingPRB 2,
+                          format format0 : 
+                            {
+                              initialCyclicShift 3,
+                              nrofSymbols 1,
+                              startingSymbolIndex 6
+                            }
+                        },
+                        {
+                          pucch-ResourceId 4,
+                          startingPRB 4,
+                          format format2 : 
+                            {
+                              nrofPRBs 1,
+                              nrofSymbols 1,
+                              startingSymbolIndex 13
+                            }
+                        },
+                        {
+                          pucch-ResourceId 5,
+                          startingPRB 5,
+                          format format2 : 
+                            {
+                              nrofPRBs 2,
+                              nrofSymbols 2,
+                              startingSymbolIndex 12
+                            }
+                        }
+                      },
+                      format2 setup : 
+                        {
+                          maxCodeRate zeroDot08
+                        },
+                      schedulingRequestResourceToAddModList 
+                      {
+                        {
+                          schedulingRequestResourceId 1,
+                          schedulingRequestID 0,
+                          periodicityAndOffset sl20 : 4,
+                          resource 3
+                        }
+                      },
+                      dl-DataToUL-ACK 
+                      {
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9
+                      },
+                      pucch-PowerControl 
+                      {
+                        deltaF-PUCCH-f0 0,
+                        deltaF-PUCCH-f1 0,
+                        deltaF-PUCCH-f2 0,
+                        deltaF-PUCCH-f3 0,
+                        deltaF-PUCCH-f4 0,
+                        p0-Set 
+                        {
+                          {
+                            p0-PUCCH-Id 1,
+                            p0-PUCCH-Value -3
+                          }
+                        }
+                      }
+                    },
+                  pusch-Config setup : 
+                    {
+                      dmrs-UplinkForPUSCH-MappingTypeA setup : 
+                        {
+                          dmrs-AdditionalPosition pos0,
+                          transformPrecodingDisabled 
+                          {
+                            scramblingID0 32,
+                            scramblingID1 32
+                          }
+                        },
+                      pusch-PowerControl 
+                      {
+                        msg3-Alpha alpha07,
+                        p0-NominalWithoutGrant 0,
+                        p0-AlphaSets 
+                        {
+                          {
+                            p0-PUSCH-AlphaSetId 0,
+                            p0 -10,
+                            alpha alpha0
+                          }
+                        },
+                        pathlossReferenceRSToReleaseList 
+                        {
+                          0
+                        },
+                        twoPUSCH-PC-AdjustmentStates twoStates,
+                        deltaMCS enabled
+                      },
+                      resourceAllocation resourceAllocationType1,
+                      pusch-TimeDomainAllocationList setup : 
+                        {
+                          {
+                            k2 4,
+                            mappingType typeA,
+                            startSymbolAndLength 27
+                          }
+                        },
+                      uci-OnPUSCH setup : 
+                        {
+                          betaOffsets semiStatic : 
+                            {
+                              betaOffsetACK-Index1 0,
+                              betaOffsetACK-Index2 0,
+                              betaOffsetACK-Index3 0,
+                              betaOffsetCSI-Part1-Index1 0,
+                              betaOffsetCSI-Part1-Index2 0,
+                              betaOffsetCSI-Part2-Index1 0,
+                              betaOffsetCSI-Part2-Index2 0
+                            },
+                          scaling f0p5
+                        }
+                    }
+                },
+                firstActiveUplinkBWP-Id 0
+              },
+              pdsch-ServingCellConfig setup : 
+                {
+                  nrofHARQ-ProcessesForPDSCH n16
+                },
+              tag-Id 0
+            }
+          }
+        },
+      measConfig 
+      {
+        measObjectToAddModList 
+        {
+          {
+            measObjectId 33,
+            measObject measObjectNR : 
+              {
+                ssbFrequency 620928,
+                ssbSubcarrierSpacing kHz30,
+                smtc1 
+                {
+                  periodicityAndOffset sf20 : 0,
+                  duration sf5
+                },
+                referenceSignalConfig 
+                {
+                  ssb-ConfigMobility 
+                  {
+                    ssb-ToMeasure setup : longBitmap : '11111111 11111111 00001111 11111111 11111111 11111111 00001111 11111111'B,
+                    deriveSSB-IndexFromCell TRUE
+                  }
+                },
+                absThreshSS-BlocksConsolidation 
+                {
+                  thresholdRSRP 127,
+                  thresholdRSRQ 127,
+                  thresholdSINR 127
+                },
+                nrofSS-BlocksToAverage 16,
+                quantityConfigIndex 1,
+                offsetMO 
+                {
+                  rsrpOffsetSSB dB24,
+                  rsrqOffsetSSB dB24,
+                  sinrOffsetSSB dB24
+                },
+                freqBandIndicatorNR-v1530 78
+              }
+          }
+        },
+        reportConfigToAddModList 
+        {
+          {
+            reportConfigId 33,
+            reportConfig reportConfigNR : 
+              {
+                reportType eventTriggered : 
+                  {
+                    eventId eventA2 : 
+                      {
+                        a2-Threshold sinr : 1,
+                        reportOnLeave FALSE,
+                        hysteresis 1,
+                        timeToTrigger ms40
+                      },
+                    rsType ssb,
+                    reportInterval ms5120,
+                    reportAmount infinity,
+                    reportQuantityCell 
+                    {
+                      rsrp TRUE,
+                      rsrq FALSE,
+                      sinr FALSE
+                    },
+                    maxReportCells 1,
+                    includeBeamMeasurements TRUE
+                  }
+              }
+          },
+          {
+            reportConfigId 34,
+            reportConfig reportConfigNR : 
+              {
+                reportType eventTriggered : 
+                  {
+                    eventId eventA1 : 
+                      {
+                        a1-Threshold sinr : 1,
+                        reportOnLeave FALSE,
+                        hysteresis 1,
+                        timeToTrigger ms40
+                      },
+                    rsType ssb,
+                    reportInterval ms5120,
+                    reportAmount infinity,
+                    reportQuantityCell 
+                    {
+                      rsrp TRUE,
+                      rsrq FALSE,
+                      sinr FALSE
+                    },
+                    maxReportCells 1,
+                    includeBeamMeasurements TRUE
+                  }
+              }
+          },
+          {
+            reportConfigId 35,
+            reportConfig reportConfigNR : 
+              {
+                reportType eventTriggered : 
+                  {
+                    eventId eventA3 : 
+                      {
+                        a3-Offset rsrp : 1,
+                        reportOnLeave TRUE,
+                        hysteresis 1,
+                        timeToTrigger ms40,
+                        useWhiteCellList TRUE
+                      },
+                    rsType ssb,
+                    reportInterval ms5120,
+                    reportAmount infinity,
+                    reportQuantityCell 
+                    {
+                      rsrp TRUE,
+                      rsrq FALSE,
+                      sinr FALSE
+                    },
+                    maxReportCells 1,
+                    includeBeamMeasurements TRUE
+                  }
+              }
+          },
+          {
+            reportConfigId 36,
+            reportConfig reportConfigNR : 
+              {
+                reportType eventTriggered : 
+                  {
+                    eventId eventA2 : 
+                      {
+                        a2-Threshold rsrq : 1,
+                        reportOnLeave FALSE,
+                        hysteresis 1,
+                        timeToTrigger ms40
+                      },
+                    rsType ssb,
+                    reportInterval ms5120,
+                    reportAmount infinity,
+                    reportQuantityCell 
+                    {
+                      rsrp TRUE,
+                      rsrq FALSE,
+                      sinr FALSE
+                    },
+                    maxReportCells 1,
+                    includeBeamMeasurements TRUE
+                  }
+              }
+          },
+          {
+            reportConfigId 37,
+            reportConfig reportConfigNR : 
+              {
+                reportType eventTriggered : 
+                  {
+                    eventId eventA1 : 
+                      {
+                        a1-Threshold rsrq : 1,
+                        reportOnLeave FALSE,
+                        hysteresis 1,
+                        timeToTrigger ms40
+                      },
+                    rsType ssb,
+                    reportInterval ms5120,
+                    reportAmount infinity,
+                    reportQuantityCell 
+                    {
+                      rsrp TRUE,
+                      rsrq FALSE,
+                      sinr FALSE
+                    },
+                    maxReportCells 1,
+                    includeBeamMeasurements TRUE
+                  }
+              }
+          },
+          {
+            reportConfigId 38,
+            reportConfig reportConfigNR : 
+              {
+                reportType eventTriggered : 
+                  {
+                    eventId eventA2 : 
+                      {
+                        a2-Threshold rsrp : 1,
+                        reportOnLeave FALSE,
+                        hysteresis 1,
+                        timeToTrigger ms40
+                      },
+                    rsType ssb,
+                    reportInterval ms5120,
+                    reportAmount infinity,
+                    reportQuantityCell 
+                    {
+                      rsrp TRUE,
+                      rsrq FALSE,
+                      sinr FALSE
+                    },
+                    maxReportCells 1,
+                    includeBeamMeasurements TRUE
+                  }
+              }
+          },
+          {
+            reportConfigId 39,
+            reportConfig reportConfigNR : 
+              {
+                reportType eventTriggered : 
+                  {
+                    eventId eventA1 : 
+                      {
+                        a1-Threshold rsrp : 1,
+                        reportOnLeave FALSE,
+                        hysteresis 1,
+                        timeToTrigger ms40
+                      },
+                    rsType ssb,
+                    reportInterval ms5120,
+                    reportAmount infinity,
+                    reportQuantityCell 
+                    {
+                      rsrp TRUE,
+                      rsrq FALSE,
+                      sinr FALSE
+                    },
+                    maxReportCells 1,
+                    includeBeamMeasurements TRUE
+                  }
+              }
+          }
+        },
+        measIdToAddModList 
+        {
+          {
+            measId 33,
+            measObjectId 33,
+            reportConfigId 33
+          },
+          {
+            measId 34,
+            measObjectId 33,
+            reportConfigId 34
+          },
+          {
+            measId 35,
+            measObjectId 33,
+            reportConfigId 35
+          },
+          {
+            measId 36,
+            measObjectId 33,
+            reportConfigId 36
+          },
+          {
+            measId 37,
+            measObjectId 33,
+            reportConfigId 37
+          },
+          {
+            measId 38,
+            measObjectId 33,
+            reportConfigId 38
+          },
+          {
+            measId 39,
+            measObjectId 33,
+            reportConfigId 39
+          }
+        },
+        s-MeasureConfig ssb-RSRP : 127,
+        quantityConfig 
+        {
+          quantityConfigNR-List 
+          {
+            {
+              quantityConfigCell 
+              {
+                ssb-FilterConfig 
+                {
+                  filterCoefficientRSRP fc1,
+                  filterCoefficientRSRQ fc1,
+                  filterCoefficientRS-SINR fc1
+                },
+                csi-RS-FilterConfig 
+                {
+                }
+              },
+              quantityConfigRS-Index 
+              {
+                ssb-FilterConfig 
+                {
+                },
+                csi-RS-FilterConfig 
+                {
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+}
+
+
+	Length:  348
+	Header:  5C 01 21 B8 43 91 A4 F6 44 33 EE 00 
+	Payload: 07 00 00 00 0F 41 01 00 00 00 00 00 
+	         00 00 08 0B 03 09 00 00 00 00 38 01 
+	         0C 80 D5 5C 40 B1 C4 31 4A 57 FC 22 
+	         0C 45 08 0F 84 28 10 20 F7 FC 04 1F 
+	         DD 0B 77 18 40 D2 76 60 00 9A 4E 65 
+	         A0 00 01 88 30 22 59 94 40 3F FF E0 
+	         00 00 00 33 70 44 20 00 24 92 80 1A 
+	         04 2C 20 00 03 10 FD C0 89 66 E4 9F 
+	         00 27 1D 45 F9 F0 0E C4 80 93 84 41 
+	         B5 AB 19 9B AC 02 90 A8 0C 00 21 21 
+	         38 83 93 4F 80 13 8E A2 B0 00 3C 09 
+	         B8 24 90 19 50 00 20 00 00 FF FF 00 
+	         18 6E 19 04 00 00 00 6C A4 10 08 60 
+	         02 00 02 00 00 02 00 03 08 05 03 09 
+	         18 A9 24 A0 40 00 82 21 08 14 28 00 
+	         04 00 C0 10 10 13 00 80 40 8C 03 01 
+	         03 30 10 08 81 A0 50 2A 1E 48 03 02 
+	         48 0F 91 A2 B3 C4 BF 21 08 42 00 36 
+	         29 01 49 0C 00 80 00 81 DC 99 40 C0 
+	         60 0C 22 0D FF E0 00 00 00 00 11 50 
+	         2B 80 40 F2 80 25 E6 00 A0 49 6F FF 
+	         F0 FF FF FF F0 FF FF FF FF FF 38 F7 
+	         BC 02 05 09 A0 34 04 06 02 08 9B C1 
+	         84 80 40 41 13 78 31 10 21 F8 46 6F 
+	         06 32 02 81 04 4D E0 C8 40 10 20 89 
+	         BC 19 48 08 04 11 37 83 31 00 00 82 
+	         26 F0 46 82 08 21 82 18 A0 8A 38 23 
+	         92 09 25 82 59 A0 99 FD 78 42 10 00 
+
+2020 Jul 15  05:59:27.566  [A7]  0xB821  NR5G RRC OTA Packet  --  RADIO_BEARER_CONFIG
+Pkt Version = 7
+RRC Release Number.Major.minor = 15.4.1
+Radio Bearer ID = 1, Physical Cell ID = 0
+Freq = 0
+Sfn = N/A, SubFrameNum = N/A
+slot = 0
+PDU Number = RADIO_BEARER_CONFIG Message,    Msg Length = 8
+SIB Mask in SI =  0x00
+
+Interpreted PDU:
+
+value RadioBearerConfig ::= 
+{
+  drb-ToAddModList 
+  {
+    {
+      cnAssociation eps-BearerIdentity : 5,
+      drb-Identity 3,
+      pdcp-Config 
+      {
+        drb 
+        {
+          discardTimer ms300,
+          pdcp-SN-SizeUL len18bits,
+          pdcp-SN-SizeDL len18bits,
+          headerCompression notUsed : NULL,
+          statusReportRequired true
+        },
+        t-Reordering ms50
+      }
+    }
+  },
+  securityConfig 
+  {
+    securityAlgorithmConfig 
+    {
+      cipheringAlgorithm nea0
+    },
+    keyToUse secondary
+  }
+}
+
+
+	Length:  44
+	Header:  2C 00 21 B8 A7 94 A4 F6 44 33 EE 00 
+	Payload: 07 00 00 00 0F 41 01 00 00 00 00 00 
+	         00 00 08 0B 03 18 00 00 00 00 08 00 
+	         14 09 28 97 AB C1 6C 08 
+
+2020 Jul 15  05:59:27.609  [90]  0xB821  NR5G RRC OTA Packet  --  RRC_RECONFIG_COMPLETE
+Pkt Version = 7
+RRC Release Number.Major.minor = 15.4.1
+Radio Bearer ID = 1, Physical Cell ID = 32
+Freq = 645504
+Sfn = N/A, SubFrameNum = N/A
+slot = 0
+PDU Number = RRC_RECONFIG_COMPLETE Message,    Msg Length = 1
+SIB Mask in SI =  0x00
+
+Interpreted PDU:
+
+value RRCReconfigurationComplete ::= 
+{
+  rrc-TransactionIdentifier 0,
+  criticalExtensions rrcReconfigurationComplete : 
+    {
+    }
+}
+
+
+	Length:  37
+	Header:  25 00 21 B8 90 9B C6 F6 44 33 EE 00 
+	Payload: 07 00 00 00 0F 41 01 20 00 80 D9 09 
+	         00 00 00 00 00 0A 00 00 00 00 01 00 
+	         00 
+
